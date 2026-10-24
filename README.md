@@ -9,9 +9,14 @@ records you can safely play before replacing the stylus.
 docker compose up -d
 ```
 
-Open http://localhost:3000 and install it to your phone's home screen. Data lives in the
-`stylus-data` Docker volume. Optional env: `PORT` (default 3000) and `ORIGIN` (the public URL,
-needed behind a reverse proxy).
+Open http://localhost:3000, or http://<your-computer's-LAN-IP>:3000 from your phone, and install
+it to your home screen. Data lives in the `stylus-data` Docker volume.
+
+Optional env: `PORT` (default 3000) and `ORIGIN`. Leave `ORIGIN` unset and the app works on any
+address it's reached by, including behind a reverse proxy that sends `X-Forwarded-Proto`
+(Caddy and Traefik do by default; for nginx add `proxy_set_header X-Forwarded-Proto $scheme;`
+and `proxy_set_header Host $host;`). Set `ORIGIN=https://stylus.example.com` to accept form
+submissions only from that one URL.
 
 The app is single-user and has **no built-in login**. Run it on your LAN or behind a reverse
 proxy that handles auth (Authelia, Caddy basic auth, Tailscale…).

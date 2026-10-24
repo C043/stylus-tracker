@@ -9,8 +9,9 @@ services:
       - '${PORT:-3000}:3000'
     environment:
       DATABASE_URL: /data/stylus-tracker.db
-      # Public URL the app is reached at (needed for form actions behind a proxy).
-      ORIGIN: ${ORIGIN:-http://localhost:3000}
+      # Optional: pin the public URL. Leave unset to accept any address (localhost, LAN IP,
+      # or a reverse proxy that sends X-Forwarded-Proto). See server.js.
+      ORIGIN: ${ORIGIN:-}
     volumes:
       - stylus-data:/data
 
