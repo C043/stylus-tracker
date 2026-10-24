@@ -100,11 +100,14 @@ Stylus    1 ──── * Play
 ```
 
 - **Turntable**: `id`, `name` (user nickname, e.g. "Living room"), `catalogId` (from catalog)
-  **or** `custom = true` with free-text `brand`/`model`, `createdAt`.
-- **Stylus**: `id`, `turntableId`, `profile` (see 3.2), optional `cartridge` / `brand` / `model`
-  text, optional `customLifespanHours` (overrides the profile), `installedOn` (local date
-  `YYYY-MM-DD`), `createdOn` (local date the stylus was added to the app),
-  `backfilledRecords` (int, frozen at creation, see 3.4), `retiredOn` (nullable).
+  **or** custom: `catalogId` null with free-text `brand`/`model`, `createdAt`.
+  There is no separate `custom` flag; a null `catalogId` _is_ custom.
+- **Stylus**: `id`, `turntableId`, `profile` (see 3.2), optional `cartridge` text (e.g.
+  "Ortofon 2M Red", names the brand and model), optional `customLifespanHours` (overrides the
+  profile), `installedOn` (local date `YYYY-MM-DD`), `createdOn` (local date the stylus was
+  added to the app), `backfilledRecords` (int, frozen at creation, see 3.4), `retiredOn`
+  (nullable). At most one stylus per turntable has `retiredOn` null, enforced by a partial
+  unique index (`stylus_one_active_idx`).
 - **Play**: `id`, `stylusId`, `kind` = `'full' | 'side'`, `playedAt` (ISO timestamp).
 
 Plays are attached to the **stylus**, not the turntable, so replacing the stylus resets the count

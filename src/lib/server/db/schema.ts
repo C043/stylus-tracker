@@ -1,4 +1,5 @@
-import { index, integer, real, sqliteTable, text } from 'drizzle-orm/sqlite-core';
+import { sql } from 'drizzle-orm';
+import { index, integer, real, sqliteTable, text, uniqueIndex } from 'drizzle-orm/sqlite-core';
 
 const id = () =>
 	text('id')
@@ -34,7 +35,13 @@ export const stylus = sqliteTable(
 		backfilledRecords: integer('backfilled_records').notNull().default(0),
 		retiredOn: text('retired_on')
 	},
-	(t) => [index('stylus_turntable_idx').on(t.turntableId)]
+	(t) => [
+		index('stylus_turntable_idx').on(t.turntableId),
+		// Exactly one active stylus per turntable; retired ones are history.
+		uniqueIndex('stylus_one_active_idx')
+			.on(t.turntableId)
+			.where(sql`${t.retiredOn} IS NULL`)
+	]
 );
 
 export const play = sqliteTable(

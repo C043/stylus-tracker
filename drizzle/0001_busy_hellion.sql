@@ -1,0 +1,1 @@
+CREATE UNIQUE INDEX `stylus_one_active_idx` ON `stylus` (`turntable_id`) WHERE "stylus"."retired_on" IS NULL;

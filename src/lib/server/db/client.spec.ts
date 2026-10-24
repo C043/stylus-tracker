@@ -40,4 +40,17 @@ describe('openDatabase', () => {
 				.run()
 		).toThrow(/FOREIGN KEY/);
 	});
+
+	it('allows only one active stylus per turntable, any number of retired ones', () => {
+		const { client } = openDatabase(':memory:');
+		client.prepare("INSERT INTO turntable (id, name, created_at) VALUES ('t', 'T', 'now')").run();
+		const insert = client.prepare(
+			"INSERT INTO stylus (id, turntable_id, profile, installed_on, created_on, retired_on) VALUES (?, 't', 'spherical', '2026-10-24', '2026-10-24', ?)"
+		);
+		insert.run('old1', '2026-01-01');
+		insert.run('old2', '2026-06-01');
+		insert.run('active', null);
+
+		expect(() => insert.run('second-active', null)).toThrow(/UNIQUE/);
+	});
 });
