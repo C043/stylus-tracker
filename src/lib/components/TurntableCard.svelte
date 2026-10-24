@@ -92,17 +92,25 @@
 				{describeBackfill(stylus.backfilledRecords, stylus.installedOn, stylus.createdOn)}
 			</p>
 		{/if}
-		<a
-			href={resolve('/turntables/[id]/stylus/replace', { id: turntable.id })}
-			class={[
-				'inline-flex min-h-11 items-center self-start rounded-full px-4 font-mono text-sm font-semibold',
-				wear.status === 'good'
-					? 'border border-cream-300/40 text-cream-100'
-					: 'bg-amber-glow text-walnut-950'
-			]}
-		>
-			Replace stylus
-		</a>
+		<div class="flex flex-wrap gap-2">
+			<a
+				href={resolve('/turntables/[id]/stylus/edit', { id: turntable.id })}
+				class="inline-flex min-h-11 items-center rounded-full border border-cream-300/40 px-4 font-mono text-sm font-semibold text-cream-100"
+			>
+				Edit install date
+			</a>
+			<a
+				href={resolve('/turntables/[id]/stylus/replace', { id: turntable.id })}
+				class={[
+					'inline-flex min-h-11 items-center rounded-full px-4 font-mono text-sm font-semibold',
+					wear.status === 'good'
+						? 'border border-cream-300/40 text-cream-100'
+						: 'bg-amber-glow text-walnut-950'
+				]}
+			>
+				Replace stylus
+			</a>
+		</div>
 	{:else}
 		<div class="flex items-center justify-between gap-3">
 			<p class="text-sm text-cream-300">No stylus yet.</p>

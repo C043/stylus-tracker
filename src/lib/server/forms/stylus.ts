@@ -12,7 +12,9 @@ import type { Db } from '../db/client';
 import {
 	addStylus,
 	getActiveStylus,
+	listStyli,
 	replaceStylus,
+	updateInstalledOn,
 	type NewStylus,
 	type Stylus
 } from '../repositories/styli';
@@ -155,4 +157,37 @@ export function replaceStylusFromForm(
 
 	if (Object.keys(errors).length > 0) return { ok: false, errors, values };
 	return { ok: true, value: replaceStylus(db, toNewStylus(turntableId, validated)) };
+}
+
+/**
+ * Corrects the active stylus's install date (AGENTS.md §3.4). The `stylusId` field names the
+ * stylus the form was opened for, so a stale form can't move the date of its replacement.
+ */
+export function editInstalledOnFromForm(
+	db: Db,
+	turntableId: string,
+	form: FormData
+): FormResult<Stylus, 'installedOn'> {
+	const values = readValues(form, ['installedOn'] as const);
+	const { installedOn } = values;
+	const errors: Partial<Record<'installedOn' | 'form', string>> = {};
+
+	const active = getActiveStylus(db, turntableId);
+	if (!active || active.id !== text(form, 'stylusId')) {
+		errors.form = 'That stylus has been replaced since you opened this page';
+	} else if (!isLocalDate(installedOn)) {
+		errors.installedOn = 'Enter the date you installed it';
+	} else if (calendarDaysBetween(installedOn, active.createdOn) < 0) {
+		const added = formatShortDate(active.createdOn, active.createdOn);
+		errors.installedOn = `It can't be after you added it (${added})`;
+	} else {
+		const previous = listStyli(db, turntableId).find((s) => s.retiredOn !== null);
+		if (previous && calendarDaysBetween(previous.installedOn, installedOn) < 0) {
+			const date = formatShortDate(previous.installedOn, active.createdOn);
+			errors.installedOn = `It can't be before the previous stylus went in (${date})`;
+		}
+	}
+
+	if (!active || Object.keys(errors).length > 0) return { ok: false, errors, values };
+	return { ok: true, value: updateInstalledOn(db, active.id, installedOn) };
 }

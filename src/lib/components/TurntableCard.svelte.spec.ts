@@ -66,4 +66,12 @@ describe('TurntableCard', () => {
 			.element(page.getByRole('link', { name: 'Replace stylus' }))
 			.not.toBeInTheDocument();
 	});
+
+	it('links to correcting the install date', async () => {
+		render(TurntableCard, { turntable, stylus, wear, today: '2026-12-31' });
+
+		await expect
+			.element(page.getByRole('link', { name: 'Edit install date' }))
+			.toHaveAttribute('href', '/turntables/t1/stylus/edit');
+	});
 });

@@ -1,9 +1,16 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import { openDatabase, type Db } from '../db/client';
-import { addStylus, getActiveStylus, getStylus, type Stylus } from '../repositories/styli';
+import {
+	addStylus,
+	getActiveStylus,
+	getStylus,
+	replaceStylus,
+	type Stylus
+} from '../repositories/styli';
 import { createTurntable, type Turntable } from '../repositories/turntables';
 import {
 	addStylusFromForm,
+	editInstalledOnFromForm,
 	replacementDefaults,
 	replaceStylusFromForm,
 	stylusDefaults
@@ -300,5 +307,92 @@ describe('replaceStylusFromForm', () => {
 
 		expect(result).toMatchObject({ ok: false, errors: { form: expect.any(String) } });
 		expect(getActiveStylus(db, empty.id)).toBeUndefined();
+	});
+});
+
+describe('editInstalledOnFromForm', () => {
+	let active: Stylus;
+	beforeEach(() => {
+		active = addStylus(db, {
+			turntableId: turntable.id,
+			profile: 'elliptical',
+			installedOn: '2026-10-20',
+			today: '2026-10-22'
+		});
+	});
+
+	const edit = (fields: Record<string, string>) =>
+		editInstalledOnFromForm(db, turntable.id, form({ stylusId: active.id, ...fields }));
+
+	it('moves the install date and recomputes the backfill against the day it was added', () => {
+		const result = edit({ installedOn: '2026-10-12' });
+
+		expect(result.ok).toBe(true);
+		expect(getStylus(db, active.id)).toMatchObject({
+			installedOn: '2026-10-12',
+			createdOn: '2026-10-22',
+			backfilledRecords: 10
+		});
+	});
+
+	it('drops the backfill when moved to the day it was added', () => {
+		edit({ installedOn: '2026-10-22' });
+
+		expect(getStylus(db, active.id)?.backfilledRecords).toBe(0);
+	});
+
+	it('rejects a date after the stylus was added to the app', () => {
+		const result = edit({ installedOn: '2026-10-23' });
+
+		expect(result).toMatchObject({
+			ok: false,
+			errors: { installedOn: expect.stringMatching(/after you added it \(22 Oct\)/) },
+			values: { installedOn: '2026-10-23' }
+		});
+		expect(getStylus(db, active.id)?.installedOn).toBe('2026-10-20');
+	});
+
+	it.each(['', '2026-02-30', 'soon'])('rejects an invalid date %j', (installedOn) => {
+		expect(edit({ installedOn })).toMatchObject({
+			ok: false,
+			errors: { installedOn: expect.any(String) }
+		});
+	});
+
+	it('rejects a date before the previous stylus went in', () => {
+		const replacement = replaceStylus(db, {
+			turntableId: turntable.id,
+			profile: 'elliptical',
+			installedOn: '2026-10-22',
+			today: '2026-10-24'
+		});
+
+		const result = editInstalledOnFromForm(
+			db,
+			turntable.id,
+			form({ stylusId: replacement.id, installedOn: '2026-10-19' })
+		);
+
+		expect(result).toMatchObject({
+			ok: false,
+			errors: { installedOn: expect.stringMatching(/before the previous stylus went in/) }
+		});
+	});
+
+	it('refuses to edit a stylus that is no longer the active one', () => {
+		replaceStylus(db, {
+			turntableId: turntable.id,
+			profile: 'elliptical',
+			installedOn: '2026-10-24',
+			today: '2026-10-24'
+		});
+
+		const result = edit({ installedOn: '2026-10-21' });
+
+		expect(result).toMatchObject({
+			ok: false,
+			errors: { form: expect.stringMatching(/replaced/) }
+		});
+		expect(getStylus(db, active.id)?.installedOn).toBe('2026-10-20');
 	});
 });
