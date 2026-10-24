@@ -20,7 +20,9 @@ describe('listDashboard', () => {
 	it('lists a turntable without a stylus with no wear', () => {
 		const tt = createTurntable(db, { name: 'Attic', brand: 'Crosley' });
 
-		expect(listDashboard(db)).toEqual([{ turntable: tt, stylus: null, wear: null }]);
+		expect(listDashboard(db)).toEqual([
+			{ turntable: tt, stylus: null, wear: null, lastPlay: null }
+		]);
 	});
 
 	it("shows the active stylus's wear, including backfill and plays", () => {
@@ -31,11 +33,12 @@ describe('listDashboard', () => {
 			installedOn: '2026-10-21',
 			today: TODAY
 		});
-		logPlay(db, { stylusId: stylus.id, kind: 'side' });
+		const played = logPlay(db, { stylusId: stylus.id, kind: 'side' });
 
 		const [row] = listDashboard(db);
 
 		expect(row.stylus).toEqual(stylus);
+		expect(row.lastPlay).toEqual(played);
 		// 3 backfilled records (6 sides) + 1 side; 300h = 900 sides.
 		expect(row.wear).toMatchObject({ usedSides: 7, remainingSides: 893, remainingRecords: 446 });
 	});
@@ -60,6 +63,8 @@ describe('listDashboard', () => {
 
 		expect(row.stylus?.id).toBe(fresh.id);
 		expect(row.wear?.usedSides).toBe(0);
+		// Undo must not reach back into the retired stylus.
+		expect(row.lastPlay).toBeNull();
 	});
 
 	it('keeps turntables in the order they were added', () => {

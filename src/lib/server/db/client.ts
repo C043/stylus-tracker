@@ -18,3 +18,5 @@ export function openDatabase(url: string, migrationsFolder = 'drizzle') {
 }
 
 export type Db = ReturnType<typeof openDatabase>['db'];
+/** `db` itself or a transaction on it. */
+export type Executor = Db | Parameters<Parameters<Db['transaction']>[0]>[0];

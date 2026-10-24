@@ -12,6 +12,7 @@ const turntable = {
 	model: null
 };
 const stylus = {
+	id: 's1',
 	profile: 'elliptical',
 	cartridge: 'Ortofon 2M Red',
 	installedOn: '2026-12-30',

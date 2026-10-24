@@ -2,7 +2,7 @@ import { and, desc, eq, isNull } from 'drizzle-orm';
 import { computeBackfilledRecords } from '../../domain/backfill';
 import type { LocalDate } from '../../domain/dates';
 import type { StylusProfileId } from '../../domain/stylus-profiles';
-import type { Db } from '../db/client';
+import type { Db, Executor } from '../db/client';
 import { stylus } from '../db/schema';
 
 export type Stylus = typeof stylus.$inferSelect;
@@ -16,9 +16,6 @@ export interface NewStylus {
 	/** The user's local date; becomes `createdOn`. */
 	today: LocalDate;
 }
-
-/** `db` itself or a transaction on it. */
-type Executor = Db | Parameters<Parameters<Db['transaction']>[0]>[0];
 
 export function getStylus(db: Executor, id: string): Stylus | undefined {
 	return db.select().from(stylus).where(eq(stylus.id, id)).get();

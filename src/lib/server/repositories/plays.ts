@@ -1,7 +1,7 @@
 import { asc, desc, eq, sql } from 'drizzle-orm';
 import type { StylusProfileId } from '../../domain/stylus-profiles';
 import { computeWear, type PlayKind, type Wear } from '../../domain/wear';
-import type { Db } from '../db/client';
+import type { Db, Executor } from '../db/client';
 import { play } from '../db/schema';
 import { getStylus } from './styli';
 
@@ -37,15 +37,22 @@ export function listPlays(db: Db, stylusId: string): Play[] {
 		.all();
 }
 
+const newestFirst = [desc(play.playedAt), desc(sql`rowid`)] as const;
+
+/** The most recent play of a stylus, or undefined if none was logged. */
+export function getLastPlay(db: Executor, stylusId: string): Play | undefined {
+	return db
+		.select()
+		.from(play)
+		.where(eq(play.stylusId, stylusId))
+		.orderBy(...newestFirst)
+		.get();
+}
+
 /** Deletes the most recent play of a stylus and returns it, or undefined if there was none. */
 export function undoLastPlay(db: Db, stylusId: string): Play | undefined {
 	return db.transaction((tx) => {
-		const last = tx
-			.select()
-			.from(play)
-			.where(eq(play.stylusId, stylusId))
-			.orderBy(desc(play.playedAt), desc(sql`rowid`))
-			.get();
+		const last = getLastPlay(tx, stylusId);
 		if (last) tx.delete(play).where(eq(play.id, last.id)).run();
 		return last;
 	});

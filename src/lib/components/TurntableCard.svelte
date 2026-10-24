@@ -5,6 +5,7 @@
 	import { formatShortDate, type LocalDate } from '../domain/dates';
 	import { STYLUS_PROFILES, type StylusProfileId } from '../domain/stylus-profiles';
 	import type { Wear } from '../domain/wear';
+	import PlayButtons from './PlayButtons.svelte';
 	import WearGauge from './WearGauge.svelte';
 
 	interface Props {
@@ -16,6 +17,7 @@
 			model: string | null;
 		};
 		stylus: {
+			id: string;
 			profile: string;
 			cartridge: string | null;
 			installedOn: string;
@@ -23,13 +25,17 @@
 			backfilledRecords: number;
 		} | null;
 		wear: Wear | null;
+		/** The active stylus's last logged play; enables undo on the dashboard. */
+		lastPlay?: { id: string } | null;
+		/** Message from a failed play or undo on this stylus. */
+		playError?: string;
 		/** The user's local date; dates in another year show their year. */
 		today: LocalDate;
 		/** `gauge` for the dashboard, `compact` for the turntables list. */
 		variant?: 'gauge' | 'compact';
 	}
 
-	let { turntable, stylus, wear, today, variant = 'gauge' }: Props = $props();
+	let { turntable, stylus, wear, lastPlay, playError, today, variant = 'gauge' }: Props = $props();
 
 	let titleId = $derived(`turntable-${turntable.id}`);
 	let modelName = $derived(turntableModelName(turntable));
@@ -71,6 +77,7 @@
 	{#if stylus && wear}
 		{#if variant === 'gauge'}
 			<WearGauge {wear} />
+			<PlayButtons stylusId={stylus.id} canUndo={lastPlay != null} error={playError} />
 		{/if}
 		<dl class="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 font-mono text-xs text-cream-300">
 			<dt>Stylus</dt>

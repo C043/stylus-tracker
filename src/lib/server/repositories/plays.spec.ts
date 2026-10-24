@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it } from 'vitest';
 import { openDatabase, type Db } from '../db/client';
 import { addStylus, replaceStylus, type Stylus } from './styli';
 import { createTurntable } from './turntables';
-import { getStylusWear, listPlays, logPlay, undoLastPlay } from './plays';
+import { getLastPlay, getStylusWear, listPlays, logPlay, undoLastPlay } from './plays';
 
 const TODAY = '2026-10-24';
 
@@ -75,6 +75,24 @@ describe('undoLastPlay', () => {
 
 		expect(undoLastPlay(db, stylus.id)).toBeUndefined();
 		expect(listPlays(db, otherStylus.id)).toHaveLength(1);
+	});
+});
+
+describe('getLastPlay', () => {
+	it('returns the most recent play without removing it', () => {
+		logPlay(db, { stylusId: stylus.id, kind: 'full', playedAt: '2026-10-24T18:00:00.000Z' });
+		const last = logPlay(db, {
+			stylusId: stylus.id,
+			kind: 'side',
+			playedAt: '2026-10-24T19:00:00.000Z'
+		});
+
+		expect(getLastPlay(db, stylus.id)).toEqual(last);
+		expect(listPlays(db, stylus.id)).toHaveLength(2);
+	});
+
+	it('returns undefined when nothing was logged', () => {
+		expect(getLastPlay(db, stylus.id)).toBeUndefined();
 	});
 });
 

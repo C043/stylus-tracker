@@ -3,7 +3,7 @@
 	import TurntableCard from '#lib/components/TurntableCard.svelte';
 	import type { PageProps } from './$types';
 
-	let { data }: PageProps = $props();
+	let { data, form }: PageProps = $props();
 </script>
 
 <svelte:head>
@@ -13,7 +13,11 @@
 <h1 class="font-display text-3xl font-semibold text-cream-50">Dashboard</h1>
 
 {#each data.rows as row (row.turntable.id)}
-	<TurntableCard {...row} today={data.today} />
+	<TurntableCard
+		{...row}
+		today={data.today}
+		playError={form && row.stylus?.id === form.stylusId ? form.error : undefined}
+	/>
 {:else}
 	<section class="flex flex-col items-center gap-5 rounded-2xl recessed px-6 py-10 text-center">
 		<div
