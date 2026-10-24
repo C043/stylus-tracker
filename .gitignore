@@ -1,0 +1,54 @@
+node_modules
+
+# Output
+.output
+.vercel
+.netlify
+.wrangler
+/.svelte-kit
+/build
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Env
+.env
+.env.*
+!.env.example
+!.env.test
+
+# Vite
+vite.config.js.timestamp-*
+vite.config.ts.timestamp-*
+
+# Tests: Playwright, Vitest browser mode, coverage
+test-results
+playwright-report
+blob-report
+/playwright/.cache
+__screenshots__
+.vitest-attachments
+coverage
+
+# SQLite (WAL mode creates -wal/-shm sidecar files; backups too)
+*.db
+*.db-wal
+*.db-shm
+*.db-journal
+*.sqlite
+*.sqlite3
+*.db.bak
+# Local copy of the Docker /data volume
+/data
+
+# Note: drizzle/ migrations ARE tracked, don't ignore them.
+
+# Logs
+*.log
+npm-debug.log*
+
+# Editors / agents (shared .vscode settings stay tracked)
+.idea
+*.swp
+.claude/settings.local.json

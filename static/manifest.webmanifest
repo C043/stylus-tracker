@@ -1,0 +1,14 @@
+{
+	"name": "Stylus Tracker",
+	"short_name": "Stylus",
+	"description": "Know how many records your stylus has left.",
+	"start_url": "/",
+	"scope": "/",
+	"display": "standalone",
+	"orientation": "portrait",
+	"background_color": "#1c120c",
+	"theme_color": "#2a1a10",
+	"icons": [
+		{ "src": "/icons/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
+	]
+}

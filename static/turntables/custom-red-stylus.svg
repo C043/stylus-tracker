@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240" role="img" aria-label="Cheap red ceramic stylus">
+	<title>Custom turntable: the infamous cheap red ceramic stylus</title>
+	<defs>
+		<linearGradient id="arm" x1="0" x2="1">
+			<stop offset="0" stop-color="#cfcfca"/>
+			<stop offset="1" stop-color="#8d8d87"/>
+		</linearGradient>
+		<linearGradient id="red" x1="0" y1="0" x2="0" y2="1">
+			<stop offset="0" stop-color="#ff4b3e"/>
+			<stop offset="1" stop-color="#b3150f"/>
+		</linearGradient>
+	</defs>
+	<!-- record -->
+	<circle cx="120" cy="250" r="150" fill="#0d0d0d"/>
+	<g fill="none" stroke="#262626" stroke-width="1.5">
+		<circle cx="120" cy="250" r="140"/><circle cx="120" cy="250" r="128"/>
+		<circle cx="120" cy="250" r="116"/><circle cx="120" cy="250" r="104"/>
+	</g>
+	<!-- plastic tonearm -->
+	<rect x="40" y="40" width="150" height="16" rx="8" fill="url(#arm)" transform="rotate(18 115 48)"/>
+	<!-- cheap plastic headshell -->
+	<path d="M150 70 h50 l8 34 h-62 z" fill="#2b2b2b"/>
+	<!-- red ceramic cartridge -->
+	<rect x="152" y="100" width="54" height="26" rx="4" fill="url(#red)"/>
+	<rect x="160" y="106" width="38" height="6" rx="3" fill="#ff8a80" opacity=".6"/>
+	<!-- the red flip-over needle lever -->
+	<path d="M176 126 l6 0 l-2 14 l-2 0 z" fill="#e01d14"/>
+	<circle cx="179" cy="141" r="2.4" fill="#f4e7c8"/>
+</svg>

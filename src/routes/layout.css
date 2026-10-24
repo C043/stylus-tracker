@@ -1,0 +1,67 @@
+@import 'tailwindcss';
+@import '@fontsource-variable/fraunces';
+@import '@fontsource/ibm-plex-mono/400.css';
+@import '@fontsource/ibm-plex-mono/600.css';
+
+/* Vintage hi-fi design tokens — see AGENTS.md §5. Use these, not raw hex. */
+@theme {
+	--font-display: 'Fraunces Variable', Georgia, serif;
+	--font-mono: 'IBM Plex Mono', ui-monospace, monospace;
+
+	--color-walnut-950: #1c120c;
+	--color-walnut-900: #2a1a10;
+	--color-walnut-800: #3b2416;
+	--color-walnut-700: #553420;
+	--color-walnut-500: #8a5a36;
+	--color-teak-400: #b9814f;
+
+	--color-cream-50: #fbf5e6;
+	--color-cream-100: #f3e8cf;
+	--color-cream-300: #dcc9a1;
+
+	--color-alu-200: #e2e2df;
+	--color-alu-400: #b4b4ae;
+	--color-alu-600: #7d7d77;
+
+	--color-amber-glow: #ffb347;
+	--color-vu-good: #c9b45a;
+	--color-vu-soon: #f08a24;
+	--color-oxblood: #9e2a2b;
+	--color-vinyl: #0d0d0d;
+}
+
+:root {
+	color-scheme: dark;
+	--wood-grain:
+		repeating-linear-gradient(
+			92deg,
+			rgb(0 0 0 / 0.08) 0 2px,
+			transparent 2px 7px,
+			rgb(255 255 255 / 0.03) 7px 8px,
+			transparent 8px 15px
+		),
+		linear-gradient(180deg, var(--color-walnut-800), var(--color-walnut-950));
+}
+
+html,
+body {
+	min-height: 100dvh;
+}
+
+body {
+	background: var(--wood-grain);
+	background-color: var(--color-walnut-900);
+	color: var(--color-cream-100);
+	font-family: var(--font-display);
+	padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom)
+		env(safe-area-inset-left);
+}
+
+@media (prefers-reduced-motion: reduce) {
+	*,
+	*::before,
+	*::after {
+		animation-duration: 0.01ms !important;
+		transition-duration: 0.01ms !important;
+	}
+}
