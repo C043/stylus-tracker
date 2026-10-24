@@ -31,6 +31,13 @@ export function calendarDaysBetween(from: LocalDate, to: LocalDate): number {
 	return b - a;
 }
 
+/** The date `days` calendar days after `date` (before it, if negative). */
+export function addDays(date: LocalDate, days: number): LocalDate {
+	const day = epochDay(date);
+	if (day === null) throw new RangeError(`Invalid local date: ${date}`);
+	return new Date((day + days) * MS_PER_DAY).toISOString().slice(0, 10);
+}
+
 /** The calendar date of `date` in the runtime's local timezone. */
 export function toLocalDate(date: Date): LocalDate {
 	const pad = (n: number) => String(n).padStart(2, '0');

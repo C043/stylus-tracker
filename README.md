@@ -32,4 +32,11 @@ npm test            # unit + component + e2e
 npm run test:docker # builds the image via docker-compose.yml, checks / and boot migrations
 ```
 
+Browser tests use Playwright's bundled Chromium. If it can't run on your system (e.g. NixOS),
+point `CHROMIUM_PATH` at a system Chromium:
+
+```sh
+CHROMIUM_PATH=/run/current-system/sw/bin/chromium npm test
+```
+
 Contributors and coding agents: read [AGENTS.md](AGENTS.md) first. The project is developed TDD-style.

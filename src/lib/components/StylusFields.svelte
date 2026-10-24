@@ -10,12 +10,17 @@
 		errors?: Partial<Record<Field, string>>;
 		/** The user's local date: the latest allowed install date, sent as `today`. */
 		today: LocalDate;
+		/** The `max` of the date input, when it's not `today`. */
+		latestInstalledOn?: LocalDate;
 	}
 
-	let { values, errors = {}, today }: Props = $props();
+	let { values, errors = {}, today, latestInstalledOn = today }: Props = $props();
 
 	let profile = $derived(values.profile);
-	let installedOn = $derived(values.installedOn);
+	// Once the user picks a date, keep it even if a new default arrives (the page swaps the
+	// server's today for the phone's after hydration).
+	let pickedInstalledOn = $state<string>();
+	let installedOn = $derived(pickedInstalledOn ?? values.installedOn);
 
 	let backfill = $derived.by(() => {
 		if (!isLocalDate(installedOn) || calendarDaysBetween(installedOn, today) <= 0) return 0;
@@ -111,9 +116,9 @@
 		id="stylus-installed"
 		name="installedOn"
 		type="date"
-		max={today}
+		max={latestInstalledOn}
 		required
-		bind:value={installedOn}
+		bind:value={() => installedOn, (value) => (pickedInstalledOn = value)}
 		class={[input, 'font-mono']}
 		aria-invalid={errors.installedOn ? 'true' : undefined}
 		aria-describedby={describedBy(errors.installedOn && 'installed-error')}

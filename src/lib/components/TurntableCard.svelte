@@ -2,7 +2,7 @@
 	import { resolve } from '$app/paths';
 	import { catalogImage, turntableModelName } from '../catalog/turntables';
 	import { describeBackfill } from '../domain/backfill';
-	import { formatShortDate } from '../domain/dates';
+	import { formatShortDate, type LocalDate } from '../domain/dates';
 	import { STYLUS_PROFILES, type StylusProfileId } from '../domain/stylus-profiles';
 	import type { Wear } from '../domain/wear';
 	import WearGauge from './WearGauge.svelte';
@@ -23,11 +23,13 @@
 			backfilledRecords: number;
 		} | null;
 		wear: Wear | null;
+		/** The user's local date; dates in another year show their year. */
+		today: LocalDate;
 		/** `gauge` for the dashboard, `compact` for the turntables list. */
 		variant?: 'gauge' | 'compact';
 	}
 
-	let { turntable, stylus, wear, variant = 'gauge' }: Props = $props();
+	let { turntable, stylus, wear, today, variant = 'gauge' }: Props = $props();
 
 	let titleId = $derived(`turntable-${turntable.id}`);
 	let modelName = $derived(turntableModelName(turntable));
@@ -76,7 +78,7 @@
 				{stylus.cartridge ? `${stylus.cartridge} · ` : ''}{profileLabel}
 			</dd>
 			<dt>Installed</dt>
-			<dd class="text-cream-100">{formatShortDate(stylus.installedOn, stylus.createdOn)}</dd>
+			<dd class="text-cream-100">{formatShortDate(stylus.installedOn, today)}</dd>
 		</dl>
 		{#if stylus.backfilledRecords > 0}
 			<p class="font-mono text-xs text-amber-glow">

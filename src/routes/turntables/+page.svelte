@@ -21,7 +21,7 @@
 </div>
 
 {#each data.rows as row (row.turntable.id)}
-	<TurntableCard {...row} variant="compact" />
+	<TurntableCard {...row} today={data.today} variant="compact" />
 {:else}
 	<section class="rounded-2xl recessed px-6 py-8 text-center">
 		<p class="text-cream-300">No turntables yet. Add the first one above.</p>

@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+	addDays,
 	calendarDaysBetween,
 	formatShortDate,
 	isLocalDate,
@@ -61,6 +62,24 @@ describe('calendarDaysBetween', () => {
 	it('throws on an invalid date', () => {
 		expect(() => calendarDaysBetween('2026-02-30', '2026-03-01')).toThrow(RangeError);
 		expect(() => calendarDaysBetween('2026-03-01', 'yesterday')).toThrow(RangeError);
+	});
+});
+
+describe('addDays', () => {
+	it.each([
+		['2026-10-24', 1, '2026-10-25'],
+		['2026-10-24', -1, '2026-10-23'],
+		['2026-10-31', 1, '2026-11-01'],
+		['2026-12-31', 1, '2027-01-01'],
+		['2028-02-28', 1, '2028-02-29'],
+		['2026-03-28', 2, '2026-03-30'],
+		['2026-10-24', 0, '2026-10-24']
+	])('%s + %i days = %s', (date, days, expected) => {
+		expect(addDays(date, days)).toBe(expected);
+	});
+
+	it('rejects an invalid date', () => {
+		expect(() => addDays('2026-02-30', 1)).toThrow(RangeError);
 	});
 });
 

@@ -51,6 +51,11 @@ Commands:
 | `npm run check`              | svelte-check / TypeScript                       |
 | `npm run lint` / `format`    | Prettier + ESLint                               |
 
+Browser tests (component and e2e) use Playwright's bundled Chromium. Where it can't run (e.g.
+NixOS, which lacks the system libraries it expects), point `CHROMIUM_PATH` at a system Chromium:
+`CHROMIUM_PATH=/run/current-system/sw/bin/chromium npm test`. Both `vite.config.ts` and
+`playwright.config.ts` read it.
+
 Test file conventions (configured in `vite.config.ts`):
 
 - `src/**/*.spec.ts` → Node "server" project (domain + server)
@@ -261,7 +266,8 @@ src/
       db/            # Drizzle schema, client
       repositories/  # DB access, tested against in-memory SQLite
   routes/            # pages, +page.server.ts loaders & form actions
-  service-worker.ts
+  service-worker/
+    index.ts
 static/
   manifest.webmanifest
   turntables/        # catalog images, _placeholder.svg, custom-red-stylus.svg
@@ -307,27 +313,6 @@ drizzle/             # generated migrations (tracked in git; maintainer commits 
 
 Each fix starts with a failing test that reproduces it (§1).
 
-- [ ] **"Installed" date drops the year after New Year.** `TurntableCard.svelte` formats
-      `installedOn` relative to `createdOn`, not today, so a stylus installed 30 Dec 2026 still
-      shows "30 Dec" in 2027. Pass today into the card (the loaders can return it) and use it as
-      the `formatShortDate` reference. The backfill note correctly stays relative to `createdOn`.
-- [ ] **Default install date is the server's day, not the phone's.** `stylusDefaults()` pre-fills
-      `installedOn` with the server date. Near midnight, with server and phone in different
-      timezones, the field can show the user's "tomorrow". The page then switches `max` to the
-      client's today, so the browser blocks submitting the untouched default. Fix: once hydrated,
-      reset `installedOn` to the client's today if the user hasn't changed it.
-- [ ] **Without JS, `today` is always the server's date.** The hidden `today` field and the
-      date input's `max` use the server date until hydration, so a no-JS user whose local date is
-      ahead of the server can't pick their own today. Low priority; consider an inline script or
-      accepting `installedOn` up to server today + 1.
-- [ ] **Hard-coded hex in the empty-state record.** `src/routes/+page.svelte` uses `#1f1f1f` for
-      the groove colour, against the token rule (§5). Add a `--color-groove` token.
-- [ ] **§7 layout is out of date.** It lists `src/service-worker.ts`; the file is
-      `src/service-worker/index.ts` (as §2 says).
-- [ ] **Browser tests don't run on NixOS out of the box.** Playwright's bundled Chromium can't
-      load system libraries there. `vite.config.ts` and `playwright.config.ts` accept
-      `CHROMIUM_PATH` (e.g. `CHROMIUM_PATH=/run/current-system/sw/bin/chromium npm test`), but
-      it isn't documented in §1 or the README yet.
 - [ ] **Not yet verified:** `npm run test:docker` hasn't been run since the step 4 routes landed.
 - [ ] **No catalog images yet.** Every model shows `_placeholder.svg`. Add licensed images
       (§4), credit them in `CREDITS.md`, and set `image:` on the model. The catalog spec checks

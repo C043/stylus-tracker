@@ -79,6 +79,30 @@ describe('addStylusFromForm', () => {
 		});
 	});
 
+	it("takes an install date one day ahead as the user's today when JS didn't send theirs", () => {
+		// Without JS the `today` field holds the server's date, which may be a day behind.
+		const result = add({ profile: 'spherical', installedOn: '2026-10-25', today: SERVER_TODAY });
+
+		expect(result.ok).toBe(true);
+		expect(getActiveStylus(db, turntable.id)).toMatchObject({
+			installedOn: '2026-10-25',
+			createdOn: '2026-10-25',
+			backfilledRecords: 0
+		});
+	});
+
+	it.each([
+		['two days ahead of the server', '2026-10-26', SERVER_TODAY],
+		["a day ahead of the browser's own date", '2026-10-24', '2026-10-23']
+	])('still rejects an install date %s', (_, installedOn, today) => {
+		const result = add({ profile: 'spherical', installedOn, today });
+
+		expect(result).toMatchObject({
+			ok: false,
+			errors: { installedOn: expect.stringMatching(/future/) }
+		});
+	});
+
 	it('rejects an install date in the future', () => {
 		const result = add({ profile: 'spherical', installedOn: '2026-10-25' });
 

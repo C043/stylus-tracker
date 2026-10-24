@@ -1,5 +1,11 @@
 import { findCatalogModel } from '../../catalog/turntables';
-import { calendarDaysBetween, isLocalDate, resolveToday, type LocalDate } from '../../domain/dates';
+import {
+	addDays,
+	calendarDaysBetween,
+	isLocalDate,
+	resolveToday,
+	type LocalDate
+} from '../../domain/dates';
 import { STYLUS_PROFILES, type StylusProfileId } from '../../domain/stylus-profiles';
 import type { Db } from '../db/client';
 import { addStylus, getActiveStylus, type Stylus } from '../repositories/styli';
@@ -41,7 +47,12 @@ export function addStylusFromForm(
 	serverToday: LocalDate
 ): FormResult<Stylus, Field> {
 	const values = readValues(form, FIELDS);
-	const today = resolveToday(text(form, 'today'), serverToday);
+	let today = resolveToday(text(form, 'today'), serverToday);
+	// Without JS the page can only send the server's date, which may be a day behind the
+	// user's. An install date one day ahead of it is then the user's today, not the future.
+	if (text(form, 'today') === serverToday && values.installedOn === addDays(serverToday, 1)) {
+		today = values.installedOn;
+	}
 	const errors: Partial<Record<Field | 'form', string>> = {};
 
 	if (!isProfile(values.profile)) errors.profile = 'Pick a stylus type';

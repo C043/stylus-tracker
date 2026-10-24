@@ -27,6 +27,37 @@ describe('StylusFields', () => {
 		expect(container.querySelector<HTMLInputElement>('input[name="today"]')?.value).toBe(TODAY);
 	});
 
+	// The page renders with the server's date, then passes the phone's once hydrated.
+	const serverRendered = { values: { ...values, installedOn: '2026-10-23' }, today: '2026-10-23' };
+	const hydrated = { values, today: TODAY };
+
+	it('follows a new default install date while the user has not picked one', async () => {
+		const { rerender } = render(StylusFields, serverRendered);
+		await expect.element(page.getByLabelText('Installed on')).toHaveValue('2026-10-23');
+
+		await rerender(hydrated);
+
+		await expect.element(page.getByLabelText('Installed on')).toHaveValue(TODAY);
+		await expect.element(page.getByLabelText('Installed on')).toHaveAttribute('max', TODAY);
+	});
+
+	it('keeps an install date the user picked when the default changes', async () => {
+		const { rerender } = render(StylusFields, serverRendered);
+		await page.getByLabelText('Installed on').fill('2026-09-12');
+
+		await rerender(hydrated);
+
+		await expect.element(page.getByLabelText('Installed on')).toHaveValue('2026-09-12');
+		await expect.element(page.getByText(/^~42 records estimated/)).toBeInTheDocument();
+	});
+
+	it('can allow a later latest install date than today', async () => {
+		// Before hydration, the server's today may be a day behind the user's.
+		render(StylusFields, { values, today: TODAY, latestInstalledOn: '2026-10-25' });
+
+		await expect.element(page.getByLabelText('Installed on')).toHaveAttribute('max', '2026-10-25');
+	});
+
 	it('shows the lifespan field only for a custom stylus', async () => {
 		render(StylusFields, { values, today: TODAY });
 		await expect.element(page.getByLabelText('Lifespan (hours)')).not.toBeInTheDocument();

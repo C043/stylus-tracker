@@ -2,16 +2,21 @@
 	import { onMount } from 'svelte';
 	import { enhance } from '$app/forms';
 	import StylusFields from '#lib/components/StylusFields.svelte';
-	import { toLocalDate } from '#lib/domain/dates.ts';
+	import { addDays, toLocalDate } from '#lib/domain/dates.ts';
 	import type { PageProps } from './$types';
 
 	let { data, form }: PageProps = $props();
 
 	// The server renders with its own date; switch to the phone's local date once hydrated.
+	// The default install date follows, so it's never the phone's tomorrow. Until then (or
+	// without JS) allow one day past the server's date, in case the phone is ahead of it.
 	let today = $derived(data.serverToday);
+	let hydrated = $state(false);
 	onMount(() => {
 		today = toLocalDate(new Date());
+		hydrated = true;
 	});
+	let values = $derived(form?.values ?? { ...data.defaults, installedOn: today });
 </script>
 
 <svelte:head>
@@ -30,7 +35,12 @@
 			{form.errors.form}
 		</p>
 	{/if}
-	<StylusFields values={form?.values ?? data.defaults} errors={form?.errors} {today} />
+	<StylusFields
+		{values}
+		errors={form?.errors}
+		{today}
+		latestInstalledOn={hydrated ? today : addDays(data.serverToday, 1)}
+	/>
 	<button
 		class="min-h-12 rounded-full bg-amber-glow font-mono font-semibold text-walnut-950 shadow-[0_2px_0_var(--color-walnut-950)] active:translate-y-px"
 	>

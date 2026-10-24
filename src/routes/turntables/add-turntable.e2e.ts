@@ -87,3 +87,48 @@ test('the turntables page lists turntables and offers to add a stylus', async ({
 	await tt.getByRole('link', { name: 'Add stylus' }).click();
 	await expect(page.getByLabel('Cartridge')).toHaveValue('Rega Carbon');
 });
+
+test.describe('with the phone on a different date than the server', () => {
+	// UTC+14 and UTC-12 are 26 h apart, so one of them is always on another date than the server.
+	const dateIn = (timeZone: string) =>
+		new Intl.DateTimeFormat('en-CA', { timeZone }).format(new Date());
+	const timezoneId = ['Pacific/Kiritimati', 'Etc/GMT+12'].find((tz) => dateIn(tz) !== localDate());
+	test.use({ timezoneId });
+
+	test("defaults the install date to the phone's today and saves it as is", async ({ page }) => {
+		const name = `Abroad ${Date.now()}`;
+
+		await page.goto('/turntables/new');
+		await page.getByRole('radio', { name: 'Rega Planar 1' }).check();
+		await page.getByLabel('Nickname').fill(name);
+		await page.getByRole('button', { name: 'Next: stylus' }).click();
+
+		await expect(page.getByLabel('Installed on')).toHaveValue(dateIn(timezoneId!));
+		await page.getByRole('button', { name: 'Save stylus' }).click();
+
+		await expect(page).toHaveURL('/');
+		await expect(card(page, name).getByText(/estimated since/)).not.toBeVisible();
+	});
+});
+
+test.describe('without JavaScript', () => {
+	test.use({ javaScriptEnabled: false });
+
+	test("accepts tomorrow by the server's clock as the user's today", async ({ page }) => {
+		const name = `No JS ${Date.now()}`;
+
+		await page.goto('/turntables/new');
+		await page.getByRole('radio', { name: 'Rega Planar 1' }).check();
+		await page.getByLabel('Nickname').fill(name);
+		await page.getByRole('button', { name: 'Next: stylus' }).click();
+
+		// The page can't know the phone's date, so it allows one day past the server's.
+		const installed = page.getByLabel('Installed on');
+		await expect(installed).toHaveAttribute('max', localDate(-1));
+		await installed.fill(localDate(-1));
+		await page.getByRole('button', { name: 'Save stylus' }).click();
+
+		await expect(page).toHaveURL('/');
+		await expect(card(page, name).getByTestId('remaining-records')).toBeVisible();
+	});
+});
