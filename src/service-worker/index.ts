@@ -1,9 +1,13 @@
 import { self } from '$app/service-worker';
 import { version } from '$app/environment';
-import { assets, immutable } from '$app/manifest';
+import { assets, immutable, prerendered } from '$app/manifest';
+import { respond } from './strategy';
 
 const CACHE = `stylus-cache-${version}`;
-const ASSETS = [...immutable, ...assets].map(({ path }) => '/' + path.replace(/^\//, ''));
+const OFFLINE_PAGE = '/offline';
+const ASSETS = [...immutable, ...assets, ...prerendered].map(
+	({ path }) => '/' + path.replace(/^\//, '')
+);
 
 self.addEventListener('install', (event) => {
 	event.waitUntil(caches.open(CACHE).then((cache) => cache.addAll(ASSETS)));
@@ -22,24 +26,11 @@ self.addEventListener('fetch', (event) => {
 	const url = new URL(event.request.url);
 	if (url.origin !== self.location.origin) return;
 
-	// Static/build assets: cache first. Everything else: network first, cache fallback.
-	if (ASSETS.includes(url.pathname)) {
-		event.respondWith(caches.match(url.pathname).then((r) => r ?? fetch(event.request)));
-		return;
-	}
-
 	event.respondWith(
-		(async () => {
-			const cache = await caches.open(CACHE);
-			try {
-				const response = await fetch(event.request);
-				if (response.ok) cache.put(event.request, response.clone());
-				return response;
-			} catch (err) {
-				const cached = await cache.match(event.request);
-				if (cached) return cached;
-				throw err;
-			}
-		})()
+		caches
+			.open(CACHE)
+			.then((cache) =>
+				respond(event.request, { cache, fetch, assets: ASSETS, offlinePage: OFFLINE_PAGE })
+			)
 	);
 });
