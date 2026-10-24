@@ -36,3 +36,22 @@ export function toLocalDate(date: Date): LocalDate {
 	const pad = (n: number) => String(n).padStart(2, '0');
 	return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
 }
+
+const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+/** "12 Sep", or "12 Sep 2025" when the year differs from `reference`. */
+export function formatShortDate(date: LocalDate, reference: LocalDate): string {
+	if (!isLocalDate(date)) throw new RangeError(`Invalid local date: ${date}`);
+	const [y, m, d] = date.split('-').map(Number);
+	const short = `${d} ${MONTHS[m - 1]}`;
+	return reference.startsWith(`${y}-`) ? short : `${short} ${y}`;
+}
+
+/**
+ * The user's "today". The browser sends its local date (the server can't know the phone's
+ * timezone); trust it only if it's a real date within a day of the server's own date.
+ */
+export function resolveToday(submitted: unknown, serverToday: LocalDate): LocalDate {
+	if (typeof submitted !== 'string' || !isLocalDate(submitted)) return serverToday;
+	return Math.abs(calendarDaysBetween(serverToday, submitted)) <= 1 ? submitted : serverToday;
+}

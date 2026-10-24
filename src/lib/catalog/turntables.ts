@@ -3,8 +3,11 @@ import type { StylusProfileId } from '../domain/stylus-profiles';
 export interface CatalogModel {
 	id: string;
 	model: string;
-	/** Path under /static, e.g. /turntables/technics/sl-1500c.webp */
-	image: string;
+	/**
+	 * Path under /static, e.g. /turntables/technics/sl-1500c.webp. Only set once a licensed
+	 * image is in place (see static/turntables/CREDITS.md); otherwise the placeholder is shown.
+	 */
+	image?: string;
 	/** Pre-fills the stylus form. Verify against the manufacturer before relying on it. */
 	defaultStylus?: { cartridge: string; profile: StylusProfileId };
 }
@@ -17,13 +20,16 @@ export interface CatalogBrand {
 
 export const PLACEHOLDER_IMAGE = '/turntables/_placeholder.svg';
 export const CUSTOM_IMAGE = '/turntables/custom-red-stylus.svg';
+/** Value of the turntable picker's `catalogId` radio for a turntable not in the catalog. */
+export const CUSTOM_CHOICE = 'custom';
 
+// Add `image: '/turntables/<brand>/<model>.webp'` to a model once its image is in static/.
 const m = (
-	brandId: string,
+	_brandId: string,
 	id: string,
 	model: string,
 	defaultStylus?: CatalogModel['defaultStylus']
-): CatalogModel => ({ id, model, image: `/turntables/${brandId}/${id}.webp`, defaultStylus });
+): CatalogModel => ({ id, model, defaultStylus });
 
 export const catalog: CatalogBrand[] = [
 	{
@@ -111,3 +117,47 @@ export const catalog: CatalogBrand[] = [
 		models: [m('crosley', 'cruiser', 'Cruiser', { cartridge: 'Crosley NP6', profile: 'sapphire' })]
 	}
 ];
+
+/** A catalog model flattened with its brand. `catalogId` is what turntables store. */
+export interface CatalogEntry extends CatalogModel {
+	/** `<brand-id>/<model-id>` */
+	catalogId: string;
+	brandId: string;
+	brand: string;
+}
+
+export function catalogModels(): CatalogEntry[] {
+	return catalog.flatMap((b) =>
+		b.models.map((model) => ({
+			...model,
+			catalogId: `${b.id}/${model.id}`,
+			brandId: b.id,
+			brand: b.brand
+		}))
+	);
+}
+
+const byCatalogId = new Map(catalogModels().map((e) => [e.catalogId, e]));
+
+export function findCatalogModel(catalogId: string): CatalogEntry | undefined {
+	return byCatalogId.get(catalogId);
+}
+
+/** Image for a turntable: the custom red stylus when `catalogId` is null. */
+export function catalogImage(catalogId: string | null): string {
+	if (catalogId === null) return CUSTOM_IMAGE;
+	return findCatalogModel(catalogId)?.image ?? PLACEHOLDER_IMAGE;
+}
+
+/** "Technics SL-1500C" for catalog turntables, free-text brand/model for custom ones. */
+export function turntableModelName(t: {
+	catalogId: string | null;
+	brand: string | null;
+	model: string | null;
+}): string {
+	if (t.catalogId !== null) {
+		const entry = findCatalogModel(t.catalogId);
+		return entry ? `${entry.brand} ${entry.model}` : 'Unknown model';
+	}
+	return [t.brand, t.model].filter(Boolean).join(' ') || 'Custom turntable';
+}

@@ -36,3 +36,15 @@ test('page content is not hidden behind the bottom nav', async ({ page }) => {
 	expect(navBox).not.toBeNull();
 	expect(reserved).toBeGreaterThanOrEqual(navBox!.height);
 });
+
+for (const path of ['/', '/turntables', '/turntables/new', '/history']) {
+	test(`${path} has no horizontal scroll at phone width`, async ({ page }) => {
+		await page.setViewportSize({ width: 375, height: 667 });
+		await page.goto(path);
+
+		const overflow = await page.evaluate(
+			() => document.documentElement.scrollWidth - document.documentElement.clientWidth
+		);
+		expect(overflow).toBe(0);
+	});
+}

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { computeBackfilledRecords } from './backfill';
+import { computeBackfilledRecords, describeBackfill } from './backfill';
 
 describe('computeBackfilledRecords', () => {
 	it('is 0 for a stylus installed on the day it is added', () => {
@@ -31,5 +31,29 @@ describe('computeBackfilledRecords', () => {
 
 	it('rejects invalid dates', () => {
 		expect(() => computeBackfilledRecords('2026-02-30', '2026-10-24')).toThrow(RangeError);
+	});
+});
+
+describe('describeBackfill', () => {
+	it('is empty when nothing was backfilled', () => {
+		expect(describeBackfill(0, '2026-10-24', '2026-10-24')).toBe('');
+	});
+
+	it('describes the estimate with the install date', () => {
+		expect(describeBackfill(42, '2026-09-12', '2026-10-24')).toBe(
+			'~42 records estimated since 12 Sep'
+		);
+	});
+
+	it('uses the singular for one record', () => {
+		expect(describeBackfill(1, '2026-10-23', '2026-10-24')).toBe(
+			'~1 record estimated since 23 Oct'
+		);
+	});
+
+	it('shows the year when installed in an earlier year', () => {
+		expect(describeBackfill(3, '2025-12-30', '2026-01-02')).toBe(
+			'~3 records estimated since 30 Dec 2025'
+		);
 	});
 });
