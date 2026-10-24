@@ -18,7 +18,8 @@
 		"db:push": "drizzle-kit push",
 		"db:generate": "drizzle-kit generate",
 		"db:migrate": "drizzle-kit migrate",
-		"db:studio": "drizzle-kit studio"
+		"db:studio": "drizzle-kit studio",
+		"test:docker": "scripts/docker-smoke.sh"
 	},
 	"devDependencies": {
 		"@eslint/js": "^10.0.1",

@@ -24,6 +24,7 @@ cp .env.example .env
 npm run dev
 npm run test:unit   # TDD watch mode
 npm test            # unit + component + e2e
+npm run test:docker # builds the image via docker-compose.yml, checks / and boot migrations
 ```
 
 Contributors and coding agents: read [AGENTS.md](AGENTS.md) first. The project is developed TDD-style.
