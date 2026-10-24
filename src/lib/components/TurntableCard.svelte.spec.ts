@@ -50,4 +50,20 @@ describe('TurntableCard', () => {
 
 		await expect.element(page.getByText(/estimated since 20 Dec$/)).toBeInTheDocument();
 	});
+
+	it.each(['gauge', 'compact'] as const)('links to replacing the stylus (%s)', async (variant) => {
+		render(TurntableCard, { turntable, stylus, wear, today: '2026-12-31', variant });
+
+		await expect
+			.element(page.getByRole('link', { name: 'Replace stylus' }))
+			.toHaveAttribute('href', '/turntables/t1/stylus/replace');
+	});
+
+	it('offers no replacement before a stylus is added', async () => {
+		render(TurntableCard, { turntable, stylus: null, wear: null, today: '2026-12-31' });
+
+		await expect
+			.element(page.getByRole('link', { name: 'Replace stylus' }))
+			.not.toBeInTheDocument();
+	});
 });

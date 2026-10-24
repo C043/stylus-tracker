@@ -1,8 +1,13 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import { openDatabase, type Db } from '../db/client';
-import { getActiveStylus } from '../repositories/styli';
+import { addStylus, getActiveStylus, getStylus, type Stylus } from '../repositories/styli';
 import { createTurntable, type Turntable } from '../repositories/turntables';
-import { addStylusFromForm, stylusDefaults } from './stylus';
+import {
+	addStylusFromForm,
+	replacementDefaults,
+	replaceStylusFromForm,
+	stylusDefaults
+} from './stylus';
 
 const SERVER_TODAY = '2026-10-24';
 
@@ -168,5 +173,132 @@ describe('addStylusFromForm', () => {
 		const result = add({ profile: 'spherical', installedOn: SERVER_TODAY });
 
 		expect(result).toMatchObject({ ok: false, errors: { form: expect.stringMatching(/already/) } });
+	});
+});
+
+describe('replacementDefaults', () => {
+	it("pre-fills the previous stylus's profile, cartridge and lifespan, installed today", () => {
+		const old = addStylus(db, {
+			turntableId: turntable.id,
+			profile: 'custom',
+			cartridge: 'Audio-Technica VM95C',
+			customLifespanHours: 450,
+			installedOn: '2026-01-10',
+			today: '2026-01-10'
+		});
+
+		expect(replacementDefaults(old, SERVER_TODAY)).toEqual({
+			profile: 'custom',
+			cartridge: 'Audio-Technica VM95C',
+			customLifespanHours: '450',
+			installedOn: SERVER_TODAY
+		});
+	});
+
+	it('leaves the cartridge and lifespan blank when the previous stylus had none', () => {
+		const old = addStylus(db, {
+			turntableId: turntable.id,
+			profile: 'spherical',
+			installedOn: SERVER_TODAY,
+			today: SERVER_TODAY
+		});
+
+		expect(replacementDefaults(old, SERVER_TODAY)).toMatchObject({
+			cartridge: '',
+			customLifespanHours: ''
+		});
+	});
+});
+
+describe('replaceStylusFromForm', () => {
+	let old: Stylus;
+	beforeEach(() => {
+		old = addStylus(db, {
+			turntableId: turntable.id,
+			profile: 'elliptical',
+			installedOn: '2026-01-10',
+			today: '2026-01-10'
+		});
+	});
+
+	const replace = (fields: Record<string, string>) =>
+		replaceStylusFromForm(db, turntable.id, form({ replacing: old.id, ...fields }), SERVER_TODAY);
+
+	it('retires the active stylus today and installs the new one', () => {
+		const result = replace({
+			profile: 'shibata',
+			cartridge: 'Ortofon 2M Bronze',
+			installedOn: SERVER_TODAY
+		});
+
+		expect(result.ok).toBe(true);
+		expect(getStylus(db, old.id)?.retiredOn).toBe(SERVER_TODAY);
+		expect(getActiveStylus(db, turntable.id)).toMatchObject({
+			profile: 'shibata',
+			cartridge: 'Ortofon 2M Bronze',
+			installedOn: SERVER_TODAY,
+			createdOn: SERVER_TODAY,
+			backfilledRecords: 0
+		});
+	});
+
+	it("retires it on the browser's local date when that is plausible", () => {
+		replace({ profile: 'elliptical', installedOn: '2026-10-25', today: '2026-10-25' });
+
+		expect(getStylus(db, old.id)?.retiredOn).toBe('2026-10-25');
+	});
+
+	it('backfills a new stylus that was fitted a few days ago', () => {
+		replace({ profile: 'elliptical', installedOn: '2026-10-21' });
+
+		expect(getActiveStylus(db, turntable.id)?.backfilledRecords).toBe(3);
+	});
+
+	it('validates the new stylus like adding one and keeps the old one active', () => {
+		const result = replace({ profile: 'laser', installedOn: '2026-10-25' });
+
+		expect(result).toMatchObject({
+			ok: false,
+			errors: { profile: expect.any(String), installedOn: expect.stringMatching(/future/) },
+			values: { profile: 'laser', installedOn: '2026-10-25' }
+		});
+		expect(getActiveStylus(db, turntable.id)?.id).toBe(old.id);
+	});
+
+	it('rejects an install date before the old stylus was installed', () => {
+		const result = replace({ profile: 'elliptical', installedOn: '2026-01-09' });
+
+		expect(result).toMatchObject({
+			ok: false,
+			errors: { installedOn: expect.stringMatching(/before/) }
+		});
+		expect(getActiveStylus(db, turntable.id)?.id).toBe(old.id);
+	});
+
+	it('refuses to replace a stylus that was already replaced, e.g. from a stale tab', () => {
+		replace({ profile: 'elliptical', installedOn: SERVER_TODAY });
+		const current = getActiveStylus(db, turntable.id);
+
+		const result = replace({ profile: 'shibata', installedOn: SERVER_TODAY });
+
+		expect(result).toMatchObject({
+			ok: false,
+			errors: { form: expect.stringMatching(/already been replaced/) }
+		});
+		expect(getActiveStylus(db, turntable.id)).toEqual(current);
+	});
+
+	it('refuses when the turntable has no stylus to replace', () => {
+		const empty = createTurntable(db, { name: 'Attic', brand: 'Crosley' });
+
+		const result = replaceStylusFromForm(
+			db,
+			empty.id,
+			form({ replacing: old.id, profile: 'spherical', installedOn: SERVER_TODAY }),
+			SERVER_TODAY
+		);
+
+		expect(result).toMatchObject({ ok: false, errors: { form: expect.any(String) } });
+		expect(getActiveStylus(db, empty.id)).toBeUndefined();
 	});
 });

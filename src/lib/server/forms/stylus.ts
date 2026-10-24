@@ -2,13 +2,20 @@ import { findCatalogModel } from '../../catalog/turntables';
 import {
 	addDays,
 	calendarDaysBetween,
+	formatShortDate,
 	isLocalDate,
 	resolveToday,
 	type LocalDate
 } from '../../domain/dates';
 import { STYLUS_PROFILES, type StylusProfileId } from '../../domain/stylus-profiles';
 import type { Db } from '../db/client';
-import { addStylus, getActiveStylus, type Stylus } from '../repositories/styli';
+import {
+	addStylus,
+	getActiveStylus,
+	replaceStylus,
+	type NewStylus,
+	type Stylus
+} from '../repositories/styli';
 import type { Turntable } from '../repositories/turntables';
 import { readValues, text, type FormResult } from './fields';
 
@@ -36,16 +43,25 @@ export function stylusDefaults(turntable: Turntable, today: LocalDate): StylusFo
 	};
 }
 
-/**
- * Installs the first stylus on a turntable. `serverToday` is the fallback when the browser
- * didn't send a plausible local date in the `today` field.
- */
-export function addStylusFromForm(
-	db: Db,
-	turntableId: string,
-	form: FormData,
-	serverToday: LocalDate
-): FormResult<Stylus, Field> {
+/** Form values to replace `previous`: same profile, cartridge and lifespan, installed today. */
+export function replacementDefaults(previous: Stylus, today: LocalDate): StylusFormValues {
+	return {
+		profile: previous.profile,
+		cartridge: previous.cartridge ?? '',
+		customLifespanHours: previous.customLifespanHours?.toString() ?? '',
+		installedOn: today
+	};
+}
+
+interface Validated {
+	values: StylusFormValues;
+	errors: Partial<Record<Field | 'form', string>>;
+	today: LocalDate;
+	customLifespanHours: number | null;
+}
+
+/** Field checks shared by adding and replacing a stylus. */
+function validateStylus(form: FormData, serverToday: LocalDate): Validated {
 	const values = readValues(form, FIELDS);
 	let today = resolveToday(text(form, 'today'), serverToday);
 	// Without JS the page can only send the server's date, which may be a day behind the
@@ -53,7 +69,7 @@ export function addStylusFromForm(
 	if (text(form, 'today') === serverToday && values.installedOn === addDays(serverToday, 1)) {
 		today = values.installedOn;
 	}
-	const errors: Partial<Record<Field | 'form', string>> = {};
+	const errors: Validated['errors'] = {};
 
 	if (!isProfile(values.profile)) errors.profile = 'Pick a stylus type';
 	if (values.cartridge.length > MAX_CARTRIDGE) {
@@ -76,20 +92,67 @@ export function addStylusFromForm(
 		errors.installedOn = "The install date can't be in the future";
 	}
 
+	return { values, errors, today, customLifespanHours };
+}
+
+function toNewStylus(turntableId: string, v: Validated): NewStylus {
+	return {
+		turntableId,
+		profile: v.values.profile as StylusProfileId,
+		cartridge: v.values.cartridge || null,
+		customLifespanHours: v.customLifespanHours,
+		installedOn: v.values.installedOn,
+		today: v.today
+	};
+}
+
+/**
+ * Installs the first stylus on a turntable. `serverToday` is the fallback when the browser
+ * didn't send a plausible local date in the `today` field.
+ */
+export function addStylusFromForm(
+	db: Db,
+	turntableId: string,
+	form: FormData,
+	serverToday: LocalDate
+): FormResult<Stylus, Field> {
+	const validated = validateStylus(form, serverToday);
+	const { values, errors } = validated;
+
 	if (getActiveStylus(db, turntableId)) {
 		errors.form = 'This turntable already has a stylus';
 	}
 
 	if (Object.keys(errors).length > 0) return { ok: false, errors, values };
-	return {
-		ok: true,
-		value: addStylus(db, {
-			turntableId,
-			profile: values.profile as StylusProfileId,
-			cartridge: values.cartridge || null,
-			customLifespanHours,
-			installedOn: values.installedOn,
-			today
-		})
-	};
+	return { ok: true, value: addStylus(db, toNewStylus(turntableId, validated)) };
+}
+
+/**
+ * Retires the stylus named in the `replacing` field (the user's today) and installs the new
+ * one. Refuses if that stylus is no longer the active one, so a stale tab or a resubmitted
+ * form can't retire the stylus that replaced it.
+ */
+export function replaceStylusFromForm(
+	db: Db,
+	turntableId: string,
+	form: FormData,
+	serverToday: LocalDate
+): FormResult<Stylus, Field> {
+	const validated = validateStylus(form, serverToday);
+	const { values, errors } = validated;
+
+	const active = getActiveStylus(db, turntableId);
+	if (!active) {
+		errors.form = 'This turntable has no stylus to replace';
+	} else if (active.id !== text(form, 'replacing')) {
+		errors.form = 'That stylus has already been replaced';
+	} else if (
+		!errors.installedOn &&
+		calendarDaysBetween(active.installedOn, values.installedOn) < 0
+	) {
+		errors.installedOn = `It can't be before the old stylus went in (${formatShortDate(active.installedOn, validated.today)})`;
+	}
+
+	if (Object.keys(errors).length > 0) return { ok: false, errors, values };
+	return { ok: true, value: replaceStylus(db, toNewStylus(turntableId, validated)) };
 }
