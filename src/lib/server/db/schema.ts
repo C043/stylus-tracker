@@ -1,5 +1,13 @@
 import { sql } from 'drizzle-orm';
-import { index, integer, real, sqliteTable, text, uniqueIndex } from 'drizzle-orm/sqlite-core';
+import {
+	check,
+	index,
+	integer,
+	real,
+	sqliteTable,
+	text,
+	uniqueIndex
+} from 'drizzle-orm/sqlite-core';
 
 const id = () =>
 	text('id')
@@ -57,4 +65,14 @@ export const play = sqliteTable(
 			.$defaultFn(() => new Date().toISOString())
 	},
 	(t) => [index('play_stylus_idx').on(t.stylusId)]
+);
+
+// App-wide settings: a single row (id 1). Missing row = defaults, see repositories/settings.ts.
+export const settings = sqliteTable(
+	'settings',
+	{
+		id: integer('id').primaryKey().default(1),
+		minutesPerSide: integer('minutes_per_side').notNull()
+	},
+	(t) => [check('settings_single_row', sql`${t.id} = 1`)]
 );

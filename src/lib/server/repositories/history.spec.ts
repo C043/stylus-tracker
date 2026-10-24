@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it } from 'vitest';
 import { openDatabase, type Db } from '../db/client';
 import { listHistory } from './history';
 import { logPlay } from './plays';
+import { updateSettings } from './settings';
 import { addStylus, replaceStylus } from './styli';
 import { createTurntable } from './turntables';
 
@@ -38,6 +39,19 @@ describe('listHistory', () => {
 				wearPercent: 1
 			}
 		]);
+	});
+
+	it('works out wear with the saved minutes per side', () => {
+		const tt = createTurntable(db, { name: 'Living room' });
+		const old = addStylus(db, fit(tt.id, '2026-10-01', '2026-10-01'));
+		logPlay(db, { stylusId: old.id, kind: 'full' });
+		replaceStylus(db, fit(tt.id, '2026-10-24', '2026-10-24'));
+		updateSettings(db, { minutesPerSide: 30 });
+
+		// 2 sides of 30 min = 60 min of a 300h (18000 min) limit.
+		const [row] = listHistory(db);
+		expect(row.sidesPlayed).toBe(2);
+		expect(row.wearPercent).toBeCloseTo(60 / 180);
 	});
 
 	it('lists the most recently retired first, across turntables', () => {

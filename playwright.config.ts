@@ -10,6 +10,11 @@ export default defineConfig({
 		env: { DATABASE_URL: join(tmpdir(), `stylus-tracker-e2e-${process.pid}`, 'e2e.db') }
 	},
 	testMatch: '**/*.e2e.{ts,js}',
+	projects: [
+		{ name: 'app', testIgnore: '**/settings.e2e.ts' },
+		// App-wide settings would change the numbers other tests expect, so they run last.
+		{ name: 'settings', testMatch: '**/settings.e2e.ts', dependencies: ['app'] }
+	],
 	// See vite.config.ts: optional system Chromium for distros like NixOS.
 	use: { launchOptions: { executablePath: process.env.CHROMIUM_PATH || undefined } }
 });

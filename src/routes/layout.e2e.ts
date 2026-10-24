@@ -37,7 +37,7 @@ test('page content is not hidden behind the bottom nav', async ({ page }) => {
 	expect(reserved).toBeGreaterThanOrEqual(navBox!.height);
 });
 
-for (const path of ['/', '/turntables', '/turntables/new', '/history']) {
+for (const path of ['/', '/turntables', '/turntables/new', '/history', '/settings']) {
 	test(`${path} has no horizontal scroll at phone width`, async ({ page }) => {
 		await page.setViewportSize({ width: 375, height: 667 });
 		await page.goto(path);

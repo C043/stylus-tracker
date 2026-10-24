@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it } from 'vitest';
 import { openDatabase, type Db } from '../db/client';
 import { listDashboard } from './dashboard';
 import { logPlay } from './plays';
+import { updateSettings } from './settings';
 import { addStylus, replaceStylus } from './styli';
 import { createTurntable } from './turntables';
 
@@ -41,6 +42,23 @@ describe('listDashboard', () => {
 		expect(row.lastPlay).toEqual(played);
 		// 3 backfilled records (6 sides) + 1 side; 300h = 900 sides.
 		expect(row.wear).toMatchObject({ usedSides: 7, remainingSides: 893, remainingRecords: 446 });
+	});
+
+	it('counts plays with the saved minutes per side', () => {
+		const tt = createTurntable(db, { name: 'Living room' });
+		const stylus = addStylus(db, {
+			turntableId: tt.id,
+			profile: 'spherical',
+			installedOn: TODAY,
+			today: TODAY
+		});
+		logPlay(db, { stylusId: stylus.id, kind: 'full' });
+		updateSettings(db, { minutesPerSide: 25 });
+
+		const [row] = listDashboard(db);
+
+		// 300h = 18000 min = 720 sides of 25 min; one full record used 2 of them.
+		expect(row.wear).toMatchObject({ usedMinutes: 50, remainingSides: 718, remainingRecords: 359 });
 	});
 
 	it('ignores retired styli', () => {

@@ -11,7 +11,8 @@
 	const tabs = [
 		{ href: '/', label: 'Dashboard', icon: 'record' },
 		{ href: '/turntables', label: 'Turntables', icon: 'turntable' },
-		{ href: '/history', label: 'History', icon: 'history' }
+		{ href: '/history', label: 'History', icon: 'history' },
+		{ href: '/settings', label: 'Settings', icon: 'knob' }
 	] as const;
 
 	// "/" only matches itself; other tabs also own their nested routes.
@@ -23,7 +24,7 @@
 	aria-label="Main"
 	class="fixed inset-x-0 bottom-0 z-10 border-t border-alu-600/60 bg-walnut-950/95 pb-[env(safe-area-inset-bottom)] shadow-[0_-8px_24px_rgb(0_0_0/0.45)] backdrop-blur"
 >
-	<ul class="mx-auto grid max-w-md grid-cols-3 px-[max(1rem,env(safe-area-inset-left))]">
+	<ul class="mx-auto grid max-w-md grid-cols-4 px-[max(1rem,env(safe-area-inset-left))]">
 		{#each tabs as tab (tab.href)}
 			{@const active = isActive(tab.href)}
 			<li>
@@ -51,6 +52,13 @@
 							<rect x="2.5" y="5" width="19" height="14" rx="2" />
 							<circle cx="10" cy="12" r="4.5" />
 							<path d="M18.5 7.5v6l-3 2.5" stroke-linecap="round" stroke-linejoin="round" />
+						{:else if tab.icon === 'knob'}
+							<circle cx="12" cy="13" r="6.5" />
+							<path d="M12 13 9 9.5" stroke-linecap="round" />
+							<path
+								d="M4 18.5 3 19.5M3.5 13H2M5.2 7 4 6M12 4.5V3M18.8 7 20 6M20.5 13H22M20 18.5l1 1"
+								stroke-linecap="round"
+							/>
 						{:else}
 							<path d="M3.5 12a8.5 8.5 0 1 0 2.5-6" stroke-linecap="round" />
 							<path d="M3 4v4h4" stroke-linecap="round" stroke-linejoin="round" />

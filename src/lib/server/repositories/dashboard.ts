@@ -1,6 +1,7 @@
 import type { Wear } from '../../domain/wear';
 import type { Db } from '../db/client';
 import { getLastPlay, getStylusWear, type Play } from './plays';
+import { getSettings } from './settings';
 import { getActiveStylus, type Stylus } from './styli';
 import { listTurntables, type Turntable } from './turntables';
 
@@ -15,13 +16,14 @@ export interface DashboardRow {
 
 /** Every turntable with its active stylus and how worn it is, oldest turntable first. */
 export function listDashboard(db: Db): DashboardRow[] {
+	const { minutesPerSide } = getSettings(db);
 	return listTurntables(db).map((turntable) => {
 		const stylus = getActiveStylus(db, turntable.id) ?? null;
 		if (!stylus) return { turntable, stylus, wear: null, lastPlay: null };
 		return {
 			turntable,
 			stylus,
-			wear: getStylusWear(db, stylus.id),
+			wear: getStylusWear(db, stylus.id, minutesPerSide),
 			lastPlay: getLastPlay(db, stylus.id) ?? null
 		};
 	});

@@ -4,7 +4,7 @@ import { render } from 'vitest-browser-svelte';
 import BottomNav from './BottomNav.svelte';
 
 describe('BottomNav', () => {
-	it('renders a labelled nav with the three tabs', async () => {
+	it('renders a labelled nav with the four tabs', async () => {
 		render(BottomNav, { pathname: '/' });
 
 		const nav = page.getByRole('navigation', { name: 'Main' });
@@ -16,6 +16,17 @@ describe('BottomNav', () => {
 		await expect
 			.element(nav.getByRole('link', { name: 'History' }))
 			.toHaveAttribute('href', '/history');
+		await expect
+			.element(nav.getByRole('link', { name: 'Settings' }))
+			.toHaveAttribute('href', '/settings');
+	});
+
+	it('marks Settings as current on /settings', async () => {
+		render(BottomNav, { pathname: '/settings' });
+
+		await expect
+			.element(page.getByRole('link', { name: 'Settings' }))
+			.toHaveAttribute('aria-current', 'page');
 	});
 
 	it('marks only the dashboard as current on /', async () => {
@@ -54,7 +65,7 @@ describe('BottomNav', () => {
 	it('gives every tab at least a 44px tap target', async () => {
 		render(BottomNav, { pathname: '/' });
 
-		for (const name of ['Dashboard', 'Turntables', 'History']) {
+		for (const name of ['Dashboard', 'Turntables', 'History', 'Settings']) {
 			const rect = page.getByRole('link', { name }).element().getBoundingClientRect();
 			expect(rect.height).toBeGreaterThanOrEqual(44);
 			expect(rect.width).toBeGreaterThanOrEqual(44);

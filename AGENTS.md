@@ -114,6 +114,8 @@ Stylus    1 ──── * Play
   (nullable). At most one stylus per turntable has `retiredOn` null, enforced by a partial
   unique index (`stylus_one_active_idx`).
 - **Play**: `id`, `stylusId`, `kind` = `'full' | 'side'`, `playedAt` (ISO timestamp).
+- **Settings**: a single row (`id` = 1, enforced by a check constraint) with `minutesPerSide`.
+  No row means defaults (`getSettings` in `repositories/settings.ts`).
 
 Plays are attached to the **stylus**, not the turntable, so replacing the stylus resets the count
 and history stays correct.
@@ -138,7 +140,8 @@ If the user doesn't know the profile, default to `spherical` (most common on bud
 
 ### 3.3 Wear calculation (core algorithm)
 
-Constants (user-adjustable later in settings, defaults below):
+Constants (`MINUTES_PER_SIDE` is user-adjustable on `/settings`, 1–60, applied to every stylus
+including retired ones; defaults below):
 
 - `MINUTES_PER_SIDE = 20` (average LP side)
 - full record = 2 sides, half record (`'side'`) = 1 side
@@ -305,7 +308,8 @@ drizzle/             # generated migrations (tracked in git; maintainer commits 
 5. Log full / half play, undo last play.
 6. Replace stylus + history.
 7. PWA manifest, icons, service worker, offline page.
-8. Docker + README. Then later: settings (minutes per side), export/import JSON, offline play queue.
+8. Docker + README.
+9. Settings (minutes per side). Then later: export/import JSON, offline play queue.
 
 ---
 

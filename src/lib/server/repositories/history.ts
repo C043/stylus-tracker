@@ -2,6 +2,7 @@ import { desc, eq, isNotNull } from 'drizzle-orm';
 import type { Db } from '../db/client';
 import { stylus, turntable } from '../db/schema';
 import { getStylusWear } from './plays';
+import { getSettings } from './settings';
 import type { Stylus } from './styli';
 import type { Turntable } from './turntables';
 
@@ -15,6 +16,7 @@ export interface HistoryRow {
 
 /** Every retired stylus with its turntable and how much it played, most recently retired first. */
 export function listHistory(db: Db): HistoryRow[] {
+	const { minutesPerSide } = getSettings(db);
 	return db
 		.select({ turntable, stylus })
 		.from(stylus)
@@ -23,7 +25,7 @@ export function listHistory(db: Db): HistoryRow[] {
 		.orderBy(desc(stylus.retiredOn), desc(stylus.installedOn))
 		.all()
 		.map((row) => {
-			const wear = getStylusWear(db, row.stylus.id);
+			const wear = getStylusWear(db, row.stylus.id, minutesPerSide);
 			return { ...row, sidesPlayed: wear.usedSides, wearPercent: wear.wearPercent };
 		});
 }
