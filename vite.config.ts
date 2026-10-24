@@ -25,10 +25,15 @@ export default defineConfig({
 					name: 'client',
 					browser: {
 						enabled: true,
-						provider: playwright(),
+						// On distros where Playwright's bundled browser can't run (e.g. NixOS),
+						// point CHROMIUM_PATH at a system Chromium.
+						provider: playwright({
+							launchOptions: { executablePath: process.env.CHROMIUM_PATH || undefined }
+						}),
 						instances: [{ browser: 'chromium', headless: true }]
 					},
 					include: ['src/**/*.svelte.{test,spec}.{js,ts}'],
+					setupFiles: ['./src/vitest-setup-client.ts'],
 					exclude: ['src/lib/server/**']
 				}
 			},

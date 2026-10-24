@@ -9,5 +9,7 @@ export default defineConfig({
 		// Fresh throwaway DB per run: no .env needed, and never touches the dev database.
 		env: { DATABASE_URL: join(tmpdir(), `stylus-tracker-e2e-${process.pid}`, 'e2e.db') }
 	},
-	testMatch: '**/*.e2e.{ts,js}'
+	testMatch: '**/*.e2e.{ts,js}',
+	// See vite.config.ts: optional system Chromium for distros like NixOS.
+	use: { launchOptions: { executablePath: process.env.CHROMIUM_PATH || undefined } }
 });
