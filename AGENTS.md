@@ -274,11 +274,15 @@ drizzle/             # generated migrations (tracked in git; maintainer commits 
   (an e2e/CI check should build the image and hit `/`).
 - That command builds the image (compose `build: .`), serves on port `3000`, and stores SQLite
   at `/data/stylus-tracker.db` (named volume `stylus-data`). Optional overrides: `PORT`, `ORIGIN`.
-- Migrations run automatically at boot (`migrate()` in `src/lib/server/db/index.ts`, reading
-  `drizzle/`). Schema changes = edit `schema.ts` → `npm run db:generate` → leave the generated SQL for the maintainer to commit.
+- Migrations run automatically at boot (`openDatabase()` in `src/lib/server/db/client.ts`,
+  reading `drizzle/`, called via the `init` hook in `src/hooks.server.ts`). Schema changes = edit `schema.ts` → `npm run db:generate` → leave the generated SQL for the maintainer to commit.
   Never rely on `db:push` outside local hacking.
-- Env: `DATABASE_URL` (path to SQLite file), `ORIGIN` (required by adapter-node behind a proxy),
-  `PORT`.
+- Env: `DATABASE_URL` (path to SQLite file), `PORT`, and `ORIGIN` (optional, pins the public URL;
+  unset, any address works, see `server.js`).
+- The container runs `node server.js`, not `node build`. It reports the real protocol to Kit
+  (`X-Forwarded-Proto`, else `http`) so CSRF passes on a LAN IP and behind a proxy. Don't
+  default `ORIGIN` to a fixed URL; that breaks form POSTs from phones.
+- `npm run test:docker` checks all of the above against the real image; keep it green.
 - Backups = copy the `.db` file (WAL mode on, so use `sqlite3 .backup` or stop the container).
 
 ---
