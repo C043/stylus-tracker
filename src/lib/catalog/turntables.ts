@@ -4,8 +4,8 @@ export interface CatalogModel {
 	id: string;
 	model: string;
 	/**
-	 * Path under /static, e.g. /turntables/technics/sl-1500c.webp. Only set once a licensed
-	 * image is in place (see static/turntables/CREDITS.md); otherwise the placeholder is shown.
+	 * Path under /static, e.g. /turntables/technics/sl-1500c.webp. Every image must be
+	 * licensed and credited in static/turntables/CREDITS.md.
 	 */
 	image?: string;
 	/** Pre-fills the stylus form. Verify against the manufacturer before relying on it. */
@@ -23,13 +23,13 @@ export const CUSTOM_IMAGE = '/turntables/custom-red-stylus.svg';
 /** Value of the turntable picker's `catalogId` radio for a turntable not in the catalog. */
 export const CUSTOM_CHOICE = 'custom';
 
-// Add `image: '/turntables/<brand>/<model>.webp'` to a model once its image is in static/.
+// Images live at static/turntables/<brand>/<model>.webp.
 const m = (
-	_brandId: string,
+	brandId: string,
 	id: string,
 	model: string,
 	defaultStylus?: CatalogModel['defaultStylus']
-): CatalogModel => ({ id, model, defaultStylus });
+): CatalogModel => ({ id, model, image: `/turntables/${brandId}/${id}.webp`, defaultStylus });
 
 export const catalog: CatalogBrand[] = [
 	{

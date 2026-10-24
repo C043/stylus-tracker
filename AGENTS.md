@@ -313,7 +313,4 @@ drizzle/             # generated migrations (tracked in git; maintainer commits 
 
 Each fix starts with a failing test that reproduces it (§1).
 
-- [ ] **Not yet verified:** `npm run test:docker` hasn't been run since the step 4 routes landed.
-- [ ] **No catalog images yet.** Every model shows `_placeholder.svg`. Add licensed images
-      (§4), credit them in `CREDITS.md`, and set `image:` on the model. The catalog spec checks
-      that the file exists.
+_None open._

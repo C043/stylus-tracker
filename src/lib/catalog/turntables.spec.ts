@@ -1,4 +1,4 @@
-import { existsSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { STYLUS_PROFILES } from '../domain/stylus-profiles';
@@ -31,6 +31,21 @@ describe('turntable catalog', () => {
 			.flatMap((m) => (m.image ? [m.image] : []))
 			.filter((image) => !inStatic(image));
 		expect(missing).toEqual([]);
+	});
+
+	it('gives every model an image', () => {
+		const missing = catalogModels()
+			.filter((m) => !m.image)
+			.map((m) => m.catalogId);
+		expect(missing).toEqual([]);
+	});
+
+	it('credits every image in static/turntables/CREDITS.md', () => {
+		const credits = readFileSync(join('static', 'turntables', 'CREDITS.md'), 'utf8');
+		const uncredited = catalogModels()
+			.flatMap((m) => (m.image ? [m.image.replace('/turntables/', '')] : []))
+			.filter((file) => !credits.includes(`\`${file}\``));
+		expect(uncredited).toEqual([]);
 	});
 
 	it('ships the placeholder and custom images', () => {
