@@ -326,7 +326,6 @@ drizzle/             # generated migrations (tracked in git; maintainer commits 
 8. Docker + README.
 9. Settings (minutes per side).
 10. Offline play queue.
-11. Later: export/import JSON.
 
 ---
 
