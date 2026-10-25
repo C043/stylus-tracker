@@ -66,6 +66,22 @@ describe('PlayQueue', () => {
 		expect(onChange).toHaveBeenCalledTimes(3);
 	});
 
+	// Fresh server data lands a moment before sent plays leave the queue. Counting them in both
+	// for that moment made the remaining count dip and come back (and the gauge spin backwards).
+	it('leaves out plays the server already counted, up to its last play', () => {
+		const { queue } = setup();
+		queue.add(play(1));
+		queue.add(play(2, { stylusId: 's2' }));
+		queue.add(play(3));
+		queue.add(play(4));
+
+		expect(queue.pendingFor('s1', 'play-3')).toEqual([play(4)]);
+		expect(queue.pendingFor('s1', 'play-4')).toEqual([]);
+		expect(queue.pendingFor('s1', 'not-queued')).toEqual([play(1), play(3), play(4)]);
+		expect(queue.pendingFor('s1', null)).toEqual([play(1), play(3), play(4)]);
+		expect(queue.pendingFor('s2', 'play-3')).toEqual([play(2, { stylusId: 's2' })]);
+	});
+
 	it('survives a reload: plays live in storage', () => {
 		const { queue, storage } = setup();
 		queue.add(play(1));

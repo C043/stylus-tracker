@@ -66,4 +66,33 @@ describe('WearGauge', () => {
 
 		await expect.element(page.getByRole('meter')).toHaveAttribute('aria-valuenow', '1');
 	});
+
+	it('leaves the record still when the page loads', async () => {
+		render(WearGauge, { wear: wearAfter(15) });
+
+		await expect.element(page.getByTestId('record')).toHaveAttribute('data-spins', '0');
+	});
+
+	it('spins the record when a play is logged', async () => {
+		const { rerender } = render(WearGauge, { wear: wearAfter(15) });
+
+		await rerender({ wear: wearAfter(15, 2) });
+
+		const record = page.getByTestId('record');
+		await expect.element(record).toHaveAttribute('data-spins', '1');
+		await expect.element(record).toHaveAttribute('data-spin', 'play');
+
+		await rerender({ wear: wearAfter(15, 3) });
+		await expect.element(record).toHaveAttribute('data-spins', '2');
+	});
+
+	it('rewinds the record when a play is undone', async () => {
+		const { rerender } = render(WearGauge, { wear: wearAfter(15, 2) });
+
+		await rerender({ wear: wearAfter(15) });
+
+		const record = page.getByTestId('record');
+		await expect.element(record).toHaveAttribute('data-spins', '1');
+		await expect.element(record).toHaveAttribute('data-spin', 'rewind');
+	});
 });

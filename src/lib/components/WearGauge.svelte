@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { untrack } from 'svelte';
 	import { SOON_THRESHOLD_PERCENT, type Wear, type WearStatus } from '../domain/wear';
 
 	interface Props {
@@ -31,6 +32,48 @@
 	const armAngle = (r: number) =>
 		TO_CENTRE - (Math.acos((D * D + ARM * ARM - r * r) / (2 * D * ARM)) * 180) / Math.PI;
 
+	// Logging a play spins the record up like a turntable starting: a nudge back, a fast spin,
+	// then it coasts to a stop with the label upright. Undo rewinds it. The page loading doesn't.
+	let disc = $state<SVGGElement>();
+	let playedGrooves = $state<SVGCircleElement>();
+	let spins = $state(0);
+	let spin = $state<'play' | 'rewind'>();
+	let lastUsedSides = untrack(() => wear.usedSides);
+
+	$effect(() => {
+		const used = wear.usedSides;
+		if (used === lastUsedSides) return;
+		const kind = used > lastUsedSides ? 'play' : 'rewind';
+		lastUsedSides = used;
+		spin = kind;
+		untrack(() => (spins += 1));
+		if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+		if (kind === 'play') {
+			disc?.animate(
+				[
+					{ transform: 'rotate(0deg)', easing: 'cubic-bezier(0.3, 0, 0.6, 1)' },
+					{ transform: 'rotate(-18deg)', offset: 0.1, easing: 'cubic-bezier(0.45, 0, 0.15, 1)' },
+					{ transform: 'rotate(1080deg)' }
+				],
+				{ duration: 1800 }
+			);
+			playedGrooves?.animate([{ opacity: 0.25 }, { opacity: 0.7 }, { opacity: 0.25 }], {
+				duration: 1400,
+				easing: 'ease-in-out'
+			});
+		} else {
+			disc?.animate(
+				[
+					{ transform: 'rotate(0deg)', easing: 'ease-out' },
+					{ transform: 'rotate(14deg)', offset: 0.12, easing: 'cubic-bezier(0.5, 0, 0.2, 1)' },
+					{ transform: 'rotate(-720deg)' }
+				],
+				{ duration: 1300 }
+			);
+		}
+	});
+
 	let percent = $derived(Math.round(wear.wearPercent));
 	let needleAt = $derived(grooveRadius(Math.min(100, wear.wearPercent)));
 	let recordsWord = $derived(wear.remainingRecords === 1 ? 'record' : 'records');
@@ -60,27 +103,63 @@
 		<!-- Disc with its shadow on the platter -->
 		<circle cx={C.x} cy={C.y + 4} r={OUTER + 4} class="fill-vinyl opacity-50 blur-[3px]" />
 		<circle cx={C.x} cy={C.y} r={OUTER + 3} class="fill-vinyl" />
-		{#each grooves as r (r)}
-			<circle cx={C.x} cy={C.y} {r} class="fill-none stroke-groove" stroke-width="1.2" />
-		{/each}
-		<!-- Played grooves glow in the status colour, from the edge in to the needle. -->
-		<circle
-			cx={C.x}
-			cy={C.y}
-			r={(OUTER + needleAt) / 2}
-			stroke-width={Math.max(0, OUTER - needleAt)}
-			class={['fill-none opacity-25 transition-all duration-700 ease-out', tone.stroke]}
-		/>
-		<!-- Run-out zone: past this groove it's time to order a replacement. -->
-		<circle
-			cx={C.x}
-			cy={C.y}
-			r={grooveRadius(SOON_THRESHOLD_PERCENT)}
-			class="fill-none stroke-oxblood"
-			stroke-width="1.4"
-			stroke-dasharray="3 3"
-		/>
-		<!-- Light sheen across the vinyl -->
+		<!-- The record itself: everything on it turns, the light sheen above it stays put. -->
+		<g
+			bind:this={disc}
+			data-testid="record"
+			data-spins={spins}
+			data-spin={spin}
+			style:transform-origin={`${C.x}px ${C.y}px`}
+		>
+			{#each grooves as r (r)}
+				<circle cx={C.x} cy={C.y} {r} class="fill-none stroke-groove" stroke-width="1.2" />
+			{/each}
+			<!-- Played grooves glow in the status colour, from the edge in to the needle. -->
+			<circle
+				bind:this={playedGrooves}
+				cx={C.x}
+				cy={C.y}
+				r={(OUTER + needleAt) / 2}
+				stroke-width={Math.max(0, OUTER - needleAt)}
+				class={['fill-none opacity-25 transition-all duration-700 ease-out', tone.stroke]}
+			/>
+			<!-- Run-out zone: past this groove it's time to order a replacement. -->
+			<circle
+				cx={C.x}
+				cy={C.y}
+				r={grooveRadius(SOON_THRESHOLD_PERCENT)}
+				class="fill-none stroke-oxblood"
+				stroke-width="1.4"
+				stroke-dasharray="3 3"
+			/>
+			<!-- Label: wear percentage in the status colour -->
+			<circle cx={C.x} cy={C.y} r={LABEL} class={['transition-colors duration-500', tone.fill]} />
+			<circle
+				cx={C.x}
+				cy={C.y}
+				r={LABEL - 4}
+				class="fill-none stroke-walnut-950 opacity-20"
+				stroke-width="0.8"
+			/>
+			<text
+				x={C.x}
+				y={C.y - 10}
+				text-anchor="middle"
+				class={['font-mono text-[15px] font-semibold', tone.text]}
+			>
+				{percent}%
+			</text>
+			<circle cx={C.x} cy={C.y} r="2.6" class="fill-vinyl" />
+			<text
+				x={C.x}
+				y={C.y + 18}
+				text-anchor="middle"
+				class={['font-mono text-[7px] tracking-[0.25em] opacity-75', tone.text]}
+			>
+				WORN
+			</text>
+		</g>
+		<!-- Light sheen across the vinyl, fixed like a lamp's reflection -->
 		<path
 			d={`M ${C.x} ${C.y} L ${C.x - 60} ${C.y - 72} A ${OUTER} ${OUTER} 0 0 1 ${C.x + 10} ${C.y - OUTER + 0.5} Z`}
 			class="fill-cream-50 opacity-[0.06]"
@@ -89,33 +168,6 @@
 			d={`M ${C.x} ${C.y} L ${C.x + 60} ${C.y + 72} A ${OUTER} ${OUTER} 0 0 1 ${C.x - 10} ${C.y + OUTER - 0.5} Z`}
 			class="fill-cream-50 opacity-[0.04]"
 		/>
-
-		<!-- Label: wear percentage in the status colour -->
-		<circle cx={C.x} cy={C.y} r={LABEL} class={['transition-colors duration-500', tone.fill]} />
-		<circle
-			cx={C.x}
-			cy={C.y}
-			r={LABEL - 4}
-			class="fill-none stroke-walnut-950 opacity-20"
-			stroke-width="0.8"
-		/>
-		<text
-			x={C.x}
-			y={C.y - 10}
-			text-anchor="middle"
-			class={['font-mono text-[15px] font-semibold', tone.text]}
-		>
-			{percent}%
-		</text>
-		<circle cx={C.x} cy={C.y} r="2.6" class="fill-vinyl" />
-		<text
-			x={C.x}
-			y={C.y + 18}
-			text-anchor="middle"
-			class={['font-mono text-[7px] tracking-[0.25em] opacity-75', tone.text]}
-		>
-			WORN
-		</text>
 
 		<!-- Tonearm: drawn pointing right from the pivot, rotated onto the groove. -->
 		<g

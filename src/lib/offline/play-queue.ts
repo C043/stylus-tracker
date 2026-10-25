@@ -88,8 +88,14 @@ export class PlayQueue {
 		}
 	}
 
-	pendingFor(stylusId: string): QueuedPlay[] {
-		return this.list().filter((p) => p.stylusId === stylusId);
+	/**
+	 * Queued plays of a stylus the server hasn't counted. Plays are sent oldest first, so if the
+	 * server's last play is still queued (fresh data arrives just before sent plays leave the
+	 * queue), it and the plays before it are already in the server's numbers.
+	 */
+	pendingFor(stylusId: string, serverLastPlayId?: string | null): QueuedPlay[] {
+		const plays = this.list().filter((p) => p.stylusId === stylusId);
+		return plays.slice(plays.findIndex((p) => p.id === serverLastPlayId) + 1);
 	}
 
 	add(play: QueuedPlay): void {

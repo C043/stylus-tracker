@@ -47,9 +47,9 @@ function flush() {
 
 export const outbox = {
 	/** Plays of a stylus the server hasn't counted yet, oldest first. */
-	pendingFor(stylusId: string): QueuedPlay[] {
+	pendingFor(stylusId: string, serverLastPlayId?: string | null): QueuedPlay[] {
 		void version;
-		return started ? queue.pendingFor(stylusId) : [];
+		return started ? queue.pendingFor(stylusId, serverLastPlayId) : [];
 	},
 
 	/** Whether the last attempt to send plays couldn't reach the server. */

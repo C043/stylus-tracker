@@ -35,7 +35,7 @@
 {#each data.rows as row (row.turntable.id)}
 	<TurntableCard
 		{...row}
-		pending={row.stylus ? outbox.pendingFor(row.stylus.id) : []}
+		pending={row.stylus ? outbox.pendingFor(row.stylus.id, row.lastPlay?.id) : []}
 		unreachable={outbox.unreachable}
 		today={data.today}
 		playError={form && row.stylus?.id === form.stylusId ? form.error : undefined}
