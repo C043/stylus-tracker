@@ -256,9 +256,9 @@ and `--vinyl-grooves` (CSS record disc background).
 
 - `static/manifest.webmanifest`: name, short_name, `display: standalone`, portrait,
   theme/background colours from tokens, icons 192/512 + maskable.
-- Icons (a stylus riding a glowing green heartbeat line) are a three.js scene in
-  `scripts/icon-scene.js`. Edit it, then `npm run icons` renders every PNG in `static/icons/`
-  (192/512, maskable, 180px apple-touch, 32px favicon). Renders are seeded, so unchanged scenes
+- Icons (a white "S" cut by vinyl grooves, an upright "T" stylus crossing it, on black vinyl)
+  are a 2D canvas drawing in `scripts/icon-scene.js`. Edit it, then `npm run icons` renders
+  every PNG in `static/icons/` (192/512, maskable, 180px apple-touch, 32px favicon). Renders are seeded, so unchanged scenes
   give identical files. Don't hand-edit the PNGs.
 - `src/service-worker/index.ts`: precache build + static files; network-first for navigations/data
   with cache fallback; offline page.
