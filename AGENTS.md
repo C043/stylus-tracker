@@ -113,7 +113,9 @@ Stylus    1 ──── * Play
   added to the app), `backfilledRecords` (int, frozen at creation, see 3.4), `retiredOn`
   (nullable). At most one stylus per turntable has `retiredOn` null, enforced by a partial
   unique index (`stylus_one_active_idx`).
-- **Play**: `id`, `stylusId`, `kind` = `'full' | 'side'`, `playedAt` (ISO timestamp).
+- **Play**: `id`, `stylusId`, `kind` = `'full' | 'side'`, `playedAt` (ISO timestamp). With JS,
+  the browser picks `id` and `playedAt` (offline queue, see §6), so a retried play is logged once
+  and keeps the time it was played; a `playedAt` in the future is stored as the server's now.
 - **Settings**: a single row (`id` = 1, enforced by a check constraint) with `minutesPerSide`.
   No row means defaults (`getSettings` in `repositories/settings.ts`).
 
@@ -251,7 +253,14 @@ Design tokens are in `src/routes/layout.css` (`@theme`). Use the tokens, don't h
   theme/background colours from tokens, icons 192/512 + maskable (TODO: design icon, a record
   label with a stylus).
 - `src/service-worker/index.ts`: precache build + static files; network-first for navigations/data
-  with cache fallback; offline page. Logging a play offline is a later feature (queue + sync).
+  with cache fallback; offline page.
+- **Offline play queue** (`src/lib/offline/`): with JS, every play goes into a queue in
+  `localStorage` first, counts at once (`addPlays` on the server's wear), then posts to the
+  `?/play` action. Sending is retried on load, `online`, tab visible and every 30 s, which also
+  covers a phone that's online but away from the LAN server. Sent plays leave the queue only after
+  the data refresh, so the count never jumps. Undo takes back a queued play locally; undoing a
+  saved one needs the server. A play the server refuses (stylus replaced meanwhile) is dropped
+  with an app-wide notice. Without JS, plays post straight to the action as before.
 - Must pass Lighthouse PWA installability on Android Chrome and iOS Safari (add
   `apple-touch-icon`, `apple-mobile-web-app-capable` meta).
 
@@ -265,6 +274,7 @@ src/
     domain/          # pure logic: wear.ts, backfill.ts, stylus-profiles.ts, dates.ts (+ .spec.ts)
     catalog/         # turntables.ts (+ .spec.ts)
     components/      # Svelte UI components (+ .svelte.spec.ts)
+    offline/         # play queue (pure, + .spec.ts) and the app's instance (outbox.svelte.ts)
     server/
       db/            # Drizzle schema, client
       repositories/  # DB access, tested against in-memory SQLite
@@ -309,7 +319,9 @@ drizzle/             # generated migrations (tracked in git; maintainer commits 
 6. Replace stylus + history.
 7. PWA manifest, icons, service worker, offline page.
 8. Docker + README.
-9. Settings (minutes per side). Then later: export/import JSON, offline play queue.
+9. Settings (minutes per side).
+10. Offline play queue.
+11. Later: export/import JSON.
 
 ---
 

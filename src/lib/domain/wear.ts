@@ -29,7 +29,12 @@ export interface Wear {
 	/** 0–100. */
 	wearPercent: number;
 	status: WearStatus;
+	/** The setting this was computed with, so more plays can be added (see addPlays). */
+	minutesPerSide: number;
 }
+
+const sidesOf = (plays: readonly { kind: PlayKind }[]) =>
+	plays.reduce((sum, p) => sum + SIDES_PER_PLAY[p.kind], 0);
 
 /** How much life a stylus has left (AGENTS.md §3.3). */
 export function computeWear({
@@ -44,10 +49,21 @@ export function computeWear({
 	}
 	if (!(minutesPerSide > 0)) throw new RangeError('minutesPerSide must be positive');
 
-	const usedSides =
-		backfilledRecords * 2 + plays.reduce((sum, p) => sum + SIDES_PER_PLAY[p.kind], 0);
+	const usedSides = backfilledRecords * 2 + sidesOf(plays);
+	return wearFromSides(
+		usedSides,
+		safeLimitHours(profile, customLifespanHours) * 60,
+		minutesPerSide
+	);
+}
+
+/** `wear` with more plays on top, e.g. ones queued on the phone that the server hasn't seen. */
+export function addPlays(wear: Wear, plays: readonly { kind: PlayKind }[]): Wear {
+	return wearFromSides(wear.usedSides + sidesOf(plays), wear.limitMinutes, wear.minutesPerSide);
+}
+
+function wearFromSides(usedSides: number, limitMinutes: number, minutesPerSide: number): Wear {
 	const usedMinutes = usedSides * minutesPerSide;
-	const limitMinutes = safeLimitHours(profile, customLifespanHours) * 60;
 	const remainingSides = Math.max(0, Math.floor((limitMinutes - usedMinutes) / minutesPerSide));
 	const wearPercent = Math.min(100, (usedMinutes / limitMinutes) * 100);
 
@@ -59,6 +75,8 @@ export function computeWear({
 		remainingRecords: Math.floor(remainingSides / 2),
 		extraSide: remainingSides % 2 === 1,
 		wearPercent,
-		status: wearPercent >= 100 ? 'replace' : wearPercent >= SOON_THRESHOLD_PERCENT ? 'soon' : 'good'
+		status:
+			wearPercent >= 100 ? 'replace' : wearPercent >= SOON_THRESHOLD_PERCENT ? 'soon' : 'good',
+		minutesPerSide
 	};
 }

@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
 	import TurntableCard from '#lib/components/TurntableCard.svelte';
+	import { outbox } from '#lib/offline/outbox.svelte.ts';
 	import type { PageProps } from './$types';
 
 	let { data, form }: PageProps = $props();
@@ -15,6 +16,8 @@
 {#each data.rows as row (row.turntable.id)}
 	<TurntableCard
 		{...row}
+		pending={row.stylus ? outbox.pendingFor(row.stylus.id) : []}
+		unreachable={outbox.unreachable}
 		today={data.today}
 		playError={form && row.stylus?.id === form.stylusId ? form.error : undefined}
 	/>

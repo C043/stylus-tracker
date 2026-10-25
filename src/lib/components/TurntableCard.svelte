@@ -4,7 +4,7 @@
 	import { describeBackfill } from '../domain/backfill';
 	import { formatShortDate, type LocalDate } from '../domain/dates';
 	import { STYLUS_PROFILES, type StylusProfileId } from '../domain/stylus-profiles';
-	import type { Wear } from '../domain/wear';
+	import { addPlays, type PlayKind, type Wear } from '../domain/wear';
 	import PlayButtons from './PlayButtons.svelte';
 	import WearGauge from './WearGauge.svelte';
 
@@ -25,6 +25,10 @@
 			backfilledRecords: number;
 		} | null;
 		wear: Wear | null;
+		/** Plays of the active stylus queued on this device that the server hasn't counted yet. */
+		pending?: readonly { kind: PlayKind }[];
+		/** The server couldn't be reached last time; say why pending plays are waiting. */
+		unreachable?: boolean;
 		/** The active stylus's last logged play; enables undo on the dashboard. */
 		lastPlay?: { id: string } | null;
 		/** Message from a failed play or undo on this stylus. */
@@ -35,7 +39,22 @@
 		variant?: 'gauge' | 'compact';
 	}
 
-	let { turntable, stylus, wear, lastPlay, playError, today, variant = 'gauge' }: Props = $props();
+	let {
+		turntable,
+		stylus,
+		wear: serverWear,
+		pending = [],
+		unreachable = false,
+		lastPlay,
+		playError,
+		today,
+		variant = 'gauge'
+	}: Props = $props();
+
+	let wear = $derived(serverWear && addPlays(serverWear, pending));
+	let waiting = $derived(
+		`${pending.length} ${pending.length === 1 ? 'play' : 'plays'} saved on this device, waiting for the server`
+	);
 
 	let titleId = $derived(`turntable-${turntable.id}`);
 	let modelName = $derived(turntableModelName(turntable));
@@ -77,7 +96,14 @@
 	{#if stylus && wear}
 		{#if variant === 'gauge'}
 			<WearGauge {wear} />
-			<PlayButtons stylusId={stylus.id} canUndo={lastPlay != null} error={playError} />
+			{#if unreachable && pending.length > 0}
+				<p role="status" class="font-mono text-xs text-cream-300">{waiting}</p>
+			{/if}
+			<PlayButtons
+				stylusId={stylus.id}
+				canUndo={lastPlay != null || pending.length > 0}
+				error={playError}
+			/>
 		{/if}
 		<dl class="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 font-mono text-xs text-cream-300">
 			<dt>Stylus</dt>

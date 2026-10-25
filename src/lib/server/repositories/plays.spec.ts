@@ -32,6 +32,33 @@ describe('logPlay', () => {
 	it('throws for an unknown stylus', () => {
 		expect(() => logPlay(db, { stylusId: 'nope', kind: 'full' })).toThrow(/not found/);
 	});
+
+	it('keeps an id and time chosen by the client (offline queue)', () => {
+		const id = '0b7f3c1e-6a2d-4f7e-9c41-2d5e8a9b1c3f';
+		const playedAt = '2026-10-23T21:15:00.000Z';
+
+		expect(logPlay(db, { id, stylusId: stylus.id, kind: 'side', playedAt })).toEqual({
+			id,
+			stylusId: stylus.id,
+			kind: 'side',
+			playedAt
+		});
+	});
+
+	it('logs a play sent twice only once, e.g. a retry after a lost response', () => {
+		const sent = { id: 'retry-1', stylusId: stylus.id, kind: 'full' as const };
+		const first = logPlay(db, sent);
+
+		expect(logPlay(db, sent)).toEqual(first);
+		expect(listPlays(db, stylus.id)).toHaveLength(1);
+	});
+
+	it('accepts a retry of a saved play after the stylus was retired', () => {
+		const first = logPlay(db, { id: 'retry-1', stylusId: stylus.id, kind: 'full' });
+		replaceStylus(db, { turntableId, profile: 'spherical', installedOn: TODAY, today: TODAY });
+
+		expect(logPlay(db, { id: 'retry-1', stylusId: stylus.id, kind: 'full' })).toEqual(first);
+	});
 });
 
 describe('undoLastPlay', () => {

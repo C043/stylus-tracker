@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { computeWear, DEFAULT_MINUTES_PER_SIDE, type PlayKind } from './wear';
+import { addPlays, computeWear, DEFAULT_MINUTES_PER_SIDE, type PlayKind } from './wear';
 
 const plays = (...kinds: PlayKind[]) => kinds.map((kind) => ({ kind }));
 
@@ -20,7 +20,8 @@ describe('computeWear', () => {
 			remainingRecords: 450,
 			extraSide: false,
 			wearPercent: 0,
-			status: 'good'
+			status: 'good',
+			minutesPerSide: 20
 		});
 	});
 
@@ -127,5 +128,26 @@ describe('computeWear', () => {
 		expect(() => computeWear({ ...spherical, backfilledRecords: 1.5 })).toThrow(RangeError);
 		expect(() => computeWear({ ...spherical, minutesPerSide: 0 })).toThrow(RangeError);
 		expect(() => computeWear({ profile: 'custom', backfilledRecords: 0, plays: [] })).toThrow();
+	});
+});
+
+describe('addPlays', () => {
+	// Plays queued on the phone are added to the wear the server computed.
+	it.each([
+		['no queued plays', spherical, plays()],
+		['one side on a fresh stylus', spherical, plays('side')],
+		['a mix', { ...spherical, plays: plays('full') }, plays('side', 'full')],
+		['crossing into "soon"', { ...spherical, backfilledRecords: 337 }, plays('full')],
+		['past the limit', { ...spherical, backfilledRecords: 449 }, plays('full', 'full')],
+		['25 min sides', { ...spherical, minutesPerSide: 25 }, plays('full', 'side')],
+		[
+			'a custom partial lifespan',
+			{ profile: 'custom', customLifespanHours: 10.5, backfilledRecords: 0, plays: [] },
+			plays('side')
+		]
+	] as const)('matches computing the wear with them included: %s', (_, input, queued) => {
+		expect(addPlays(computeWear(input), queued)).toEqual(
+			computeWear({ ...input, plays: [...input.plays, ...queued] })
+		);
 	});
 });

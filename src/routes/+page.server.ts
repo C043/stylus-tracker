@@ -15,7 +15,8 @@ export const actions: Actions = {
 	play: async ({ request }) => {
 		const result = logPlayFromForm(db, await request.formData());
 		if (!result.ok) {
-			const error = result.errors.form ?? result.errors.kind;
+			const { form, kind, playedAt, id } = result.errors;
+			const error = form ?? kind ?? playedAt ?? id;
 			return fail(400, { stylusId: result.values.stylusId, error });
 		}
 		redirect(303, '/');

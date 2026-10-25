@@ -8,23 +8,35 @@ import { getStylus } from './styli';
 export type Play = typeof play.$inferSelect;
 
 export interface NewPlay {
+	/** Chosen by the client so a retried play is logged once; generated when missing. */
+	id?: string;
 	stylusId: string;
 	kind: PlayKind;
 	/** ISO timestamp; defaults to now. */
 	playedAt?: string;
 }
 
-function requireStylus(db: Db, id: string) {
+function requireStylus(db: Executor, id: string) {
 	const found = getStylus(db, id);
 	if (!found) throw new Error(`Stylus ${id} not found`);
 	return found;
 }
 
+export function getPlay(db: Executor, id: string): Play | undefined {
+	return db.select().from(play).where(eq(play.id, id)).get();
+}
+
+/** Logs a play, or returns the already saved one when its id was sent before. */
 export function logPlay(db: Db, input: NewPlay): Play {
-	if (requireStylus(db, input.stylusId).retiredOn) {
-		throw new Error('Cannot log a play on a retired stylus');
-	}
-	return db.insert(play).values(input).returning().get();
+	return db.transaction((tx) => {
+		// A retry of a saved play succeeds even if the stylus was retired since.
+		const saved = input.id && getPlay(tx, input.id);
+		if (saved) return saved;
+		if (requireStylus(tx, input.stylusId).retiredOn) {
+			throw new Error('Cannot log a play on a retired stylus');
+		}
+		return tx.insert(play).values(input).returning().get();
+	});
 }
 
 /** Plays of a stylus, oldest first. */

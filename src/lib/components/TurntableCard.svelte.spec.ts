@@ -67,6 +67,76 @@ describe('TurntableCard', () => {
 			.not.toBeInTheDocument();
 	});
 
+	describe('with plays waiting to sync', () => {
+		const pending = [{ kind: 'full' }, { kind: 'side' }] as const;
+
+		it.each(['gauge', 'compact'] as const)('counts them already (%s)', async (variant) => {
+			render(TurntableCard, { turntable, stylus, wear, pending, today: '2026-12-31', variant });
+
+			await expect.element(page.getByTestId('remaining-records')).toHaveTextContent('448');
+		});
+
+		it('says they are saved on the phone when the server could not be reached', async () => {
+			render(TurntableCard, {
+				turntable,
+				stylus,
+				wear,
+				pending,
+				unreachable: true,
+				today: '2026-12-31'
+			});
+
+			await expect
+				.element(page.getByRole('status'))
+				.toHaveTextContent(/2 plays saved on this device, waiting for the server/);
+		});
+
+		it('says "play" for one', async () => {
+			render(TurntableCard, {
+				turntable,
+				stylus,
+				wear,
+				pending: [{ kind: 'side' }],
+				unreachable: true,
+				today: '2026-12-31'
+			});
+
+			await expect.element(page.getByRole('status')).toHaveTextContent(/^1 play saved/);
+		});
+
+		it('offers to undo them even before anything reached the server', async () => {
+			render(TurntableCard, {
+				turntable,
+				stylus,
+				wear,
+				pending,
+				lastPlay: null,
+				today: '2026-12-31'
+			});
+
+			await expect.element(page.getByRole('button', { name: 'Undo last play' })).toBeVisible();
+		});
+
+		it('shows no note while they are simply being sent, so the page does not jump', async () => {
+			render(TurntableCard, { turntable, stylus, wear, pending, today: '2026-12-31' });
+
+			await expect.element(page.getByRole('status')).not.toBeInTheDocument();
+		});
+
+		it('shows no note when nothing is waiting', async () => {
+			render(TurntableCard, {
+				turntable,
+				stylus,
+				wear,
+				pending: [],
+				unreachable: true,
+				today: '2026-12-31'
+			});
+
+			await expect.element(page.getByRole('status')).not.toBeInTheDocument();
+		});
+	});
+
 	it('links to correcting the install date', async () => {
 		render(TurntableCard, { turntable, stylus, wear, today: '2026-12-31' });
 

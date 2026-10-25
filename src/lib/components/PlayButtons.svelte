@@ -2,10 +2,11 @@
 	import { enhance, type SubmitFunction } from '$app/forms';
 	import { invalidateAll } from '$app/navigation';
 	import type { PlayKind } from '../domain/wear';
+	import { outbox } from '../offline/outbox.svelte';
 
 	interface Props {
 		stylusId: string;
-		/** Whether the stylus has a logged play to take back. */
+		/** Whether the stylus has a logged or queued play to take back. */
 		canUndo: boolean;
 		/** Message from a failed play or undo posted without JS. */
 		error?: string;
@@ -27,24 +28,30 @@
 		spins[kind] += 1;
 	}
 
-	// The actions redirect so a no-JS refresh can't log the play twice. With JS, reload the
-	// data in place instead: following the redirect would scroll back to the top.
-	const submit: SubmitFunction<undefined, { error?: string }> = () => {
-		return async ({ result, update }) => {
-			if (result.type === 'redirect') {
-				failed = undefined;
-				await invalidateAll();
-			} else if (result.type === 'failure') {
-				failed = result.data?.error;
-			} else {
-				await update();
-			}
+	// With JS, plays go through the outbox: counted at once, sent when the server can be reached.
+	const logPlay: SubmitFunction = ({ formData, cancel }) => {
+		cancel();
+		failed = undefined;
+		const kind = formData.get('kind');
+		if (kind === 'full' || kind === 'side') outbox.log(stylusId, kind);
+	};
+
+	// A play still waiting in the outbox is taken back there; otherwise the server undoes it.
+	// The action redirects so a no-JS refresh can't undo twice. With JS, reload the data in
+	// place instead: following the redirect would scroll back to the top.
+	const undo: SubmitFunction<undefined, { error?: string }> = async ({ cancel }) => {
+		failed = undefined;
+		if (await outbox.undo(stylusId)) return cancel();
+		return async ({ result }) => {
+			if (result.type === 'redirect') await invalidateAll();
+			else if (result.type === 'failure') failed = result.data?.error;
+			else failed = "Couldn't reach the server to undo, try again once it's back";
 		};
 	};
 </script>
 
 <div class="flex flex-col gap-3">
-	<form method="POST" action="?/play" use:enhance={submit} class="grid grid-cols-2 gap-3">
+	<form method="POST" action="?/play" use:enhance={logPlay} class="grid grid-cols-2 gap-3">
 		<input type="hidden" name="stylusId" value={stylusId} />
 		{#each KEYS as key (key.kind)}
 			<!-- Piano-key switch: brushed aluminium, travels down when pressed. -->
@@ -88,7 +95,7 @@
 	{/if}
 
 	{#if canUndo}
-		<form method="POST" action="?/undo" use:enhance={submit} class="self-center">
+		<form method="POST" action="?/undo" use:enhance={undo} class="self-center">
 			<input type="hidden" name="stylusId" value={stylusId} />
 			<button
 				class="inline-flex min-h-11 items-center rounded-full px-4 font-mono text-xs text-cream-300 underline decoration-dotted underline-offset-4"
