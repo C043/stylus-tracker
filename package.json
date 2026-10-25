@@ -20,7 +20,8 @@
 		"db:migrate": "drizzle-kit migrate",
 		"db:studio": "drizzle-kit studio",
 		"test:docker": "bash scripts/docker-smoke.sh",
-		"icons": "node scripts/render-icons.mjs"
+		"icons": "node scripts/render-icons.mjs",
+		"screenshots": "node scripts/screenshots.mjs"
 	},
 	"devDependencies": {
 		"@eslint/js": "^10.0.1",
