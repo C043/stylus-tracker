@@ -211,7 +211,19 @@ body::after {
 /* Text inputs and selects. 16px minimum: iOS Safari zooms in on smaller fields when tapped. */
 @utility field-input {
 	min-height: 3rem;
+	/* iOS gives date fields a native minimum width wider than a phone's form. */
+	min-width: 0;
 	font-size: max(1rem, 1em);
+	@supports (-webkit-touch-callout: none) {
+		&[type='date'] {
+			appearance: none;
+			display: flex;
+			align-items: center;
+		}
+	}
+	&::-webkit-date-and-time-value {
+		text-align: left;
+	}
 	width: 100%;
 	border-radius: 0.75rem;
 	border: 1px solid rgb(243 232 207 / 0.12);

@@ -76,3 +76,24 @@ test('form fields are at least 16px so iOS does not zoom in on tap', async ({ pa
 	await page.goto('/settings');
 	expect(tooSmall(await fontSizes())).toEqual([]);
 });
+
+// iOS gives a date field a native minimum width wider than a phone's form, so every field must
+// be allowed to shrink to the form instead of spilling out of it.
+test('stylus form fields fit inside the form on a small phone', async ({ page }) => {
+	await page.setViewportSize({ width: 320, height: 640 });
+	await page.goto('/turntables/new');
+	await page.getByRole('radio', { name: /Custom/ }).check();
+	await page.getByLabel('Brand', { exact: true }).fill('Crosley');
+	await page.getByLabel('Model', { exact: true }).fill('Narrow');
+	await page.getByRole('button', { name: 'Next: stylus' }).click();
+	await expect(page.getByLabel('Installed on')).toBeVisible();
+
+	const form = (await page.locator('main form').boundingBox())!;
+	for (const label of ['Stylus type', 'Cartridge', 'Installed on']) {
+		const field = page.getByLabel(label);
+		const box = (await field.boundingBox())!;
+		expect(box.x).toBeGreaterThanOrEqual(form.x);
+		expect(box.x + box.width).toBeLessThanOrEqual(form.x + form.width);
+		expect(await field.evaluate((el) => getComputedStyle(el).minWidth)).toBe('0px');
+	}
+});
