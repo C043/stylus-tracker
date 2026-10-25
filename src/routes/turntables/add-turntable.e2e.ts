@@ -43,6 +43,29 @@ test('add a catalog turntable with a backdated stylus and see records left', asy
 	await expect(tt.getByText('Technics SL-1500C')).toBeVisible();
 });
 
+test('keeps a turntable picked before the page finished loading', async ({ page }) => {
+	const name = `Early tap ${Date.now()}`;
+	// Hold the app's JS so the picks land on the server-rendered page, as on a slow phone.
+	let release!: () => void;
+	const held = new Promise<void>((resolve) => (release = resolve));
+	await page.route('**/_app/immutable/**/*.js', async (route) => {
+		await held;
+		await route.continue();
+	});
+	await page.goto('/turntables/new', { waitUntil: 'commit' });
+
+	await page.getByRole('radio', { name: 'Technics SL-1500C' }).check();
+	await page.getByLabel('Nickname').fill(name);
+	release();
+	// Hydration runs once the JS has arrived.
+	await page.waitForLoadState('networkidle');
+
+	await expect(page.getByRole('radio', { name: 'Technics SL-1500C' })).toBeChecked();
+	await expect(page.getByLabel('Nickname')).toHaveValue(name);
+	await page.getByRole('button', { name: 'Next: stylus' }).click();
+	await expect(page).toHaveURL(/stylus\/new$/);
+});
+
 test('add a custom turntable with a custom lifespan', async ({ page }) => {
 	const model = `Suitcase ${Date.now()}`;
 

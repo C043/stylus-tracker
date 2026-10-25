@@ -12,6 +12,12 @@
 
 	let values = $derived(form?.values);
 	let errors = $derived(form?.errors ?? {});
+	// Bound, not just `checked={…}` / `value={…}`: hydration would otherwise clear what was
+	// picked or typed before the JS loaded (slow phone). Follow the form's echo after a failed submit.
+	let selected = $derived(values?.catalogId);
+	let customBrand = $derived(values?.brand ?? '');
+	let customModel = $derived(values?.model ?? '');
+	let nickname = $derived(values?.name ?? '');
 
 	const input = 'field-input';
 	// A radio styled as a card; the ring shows the checked and keyboard-focused states.
@@ -62,7 +68,7 @@
 				type="radio"
 				name="catalogId"
 				value={CUSTOM_CHOICE}
-				checked={values?.catalogId === CUSTOM_CHOICE}
+				bind:group={selected}
 				class="absolute inset-0 z-10 size-full cursor-pointer appearance-none rounded-2xl opacity-0"
 			/>
 			<img
@@ -85,7 +91,7 @@
 				<input
 					id="custom-brand"
 					name="brand"
-					value={values?.brand ?? ''}
+					bind:value={customBrand}
 					maxlength="60"
 					autocomplete="off"
 					class={input}
@@ -99,7 +105,7 @@
 				<input
 					id="custom-model"
 					name="model"
-					value={values?.model ?? ''}
+					bind:value={customModel}
 					maxlength="60"
 					autocomplete="off"
 					class={input}
@@ -130,7 +136,7 @@
 								type="radio"
 								name="catalogId"
 								value={catalogId}
-								checked={values?.catalogId === catalogId}
+								bind:group={selected}
 								class="absolute inset-0 z-10 size-full cursor-pointer appearance-none rounded-2xl opacity-0"
 							/>
 							<img
@@ -162,7 +168,7 @@
 			<input
 				id="turntable-name"
 				name="name"
-				value={values?.name ?? ''}
+				bind:value={nickname}
 				maxlength="60"
 				placeholder="e.g. Living room"
 				autocomplete="off"

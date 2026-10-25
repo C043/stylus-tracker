@@ -10,8 +10,9 @@ async function addTurntable(page: Page) {
 	await expect(page).toHaveURL(/stylus\/new$/);
 	await page.getByRole('button', { name: 'Save stylus' }).click();
 	await expect(page).toHaveURL('/');
-	// Load the dashboard through the service worker so it opens offline too.
-	await page.reload();
+	// Load the dashboard through the service worker so it opens offline too. Wait for the JS:
+	// a tap before it loads is a plain form post, which skips the queue.
+	await page.reload({ waitUntil: 'networkidle' });
 	return { name, card: page.getByRole('article', { name }) };
 }
 
