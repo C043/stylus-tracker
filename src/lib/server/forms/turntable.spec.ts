@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import { openDatabase, type Db } from '../db/client';
-import { listTurntables } from '../repositories/turntables';
-import { addTurntableFromForm } from './turntable';
+import { createTurntable, getTurntable, listTurntables } from '../repositories/turntables';
+import { addTurntableFromForm, renameTurntableFromForm } from './turntable';
 
 let db: Db;
 beforeEach(() => {
@@ -89,5 +89,47 @@ describe('addTurntableFromForm', () => {
 			errors: { name: expect.any(String), brand: expect.any(String), model: expect.any(String) },
 			values: { catalogId: 'custom', name: long, brand: long, model: long }
 		});
+	});
+});
+
+describe('renameTurntableFromForm', () => {
+	it('renames the turntable to the trimmed name', () => {
+		const t = createTurntable(db, { name: 'Living room', catalogId: 'technics/sl-1500c' });
+
+		const result = renameTurntableFromForm(db, t.id, form({ name: '  Den ' }));
+
+		expect(result).toMatchObject({ ok: true, value: { name: 'Den' } });
+		expect(getTurntable(db, t.id)?.name).toBe('Den');
+	});
+
+	it.each([
+		[{ catalogId: 'technics/sl-1500c' }, 'Technics SL-1500C'],
+		[{ catalogId: null, brand: 'Crosley', model: 'Suitcase' }, 'Crosley Suitcase']
+	])('falls back to the model name when the name is cleared (%j)', (fields, expected) => {
+		const t = createTurntable(db, { name: 'Living room', ...fields });
+
+		renameTurntableFromForm(db, t.id, form({ name: '' }));
+
+		expect(getTurntable(db, t.id)?.name).toBe(expected);
+	});
+
+	it('rejects an over-long name and keeps the old one', () => {
+		const t = createTurntable(db, { name: 'Living room', catalogId: 'technics/sl-1500c' });
+		const long = 'x'.repeat(61);
+
+		const result = renameTurntableFromForm(db, t.id, form({ name: long }));
+
+		expect(result).toMatchObject({
+			ok: false,
+			errors: { name: expect.any(String) },
+			values: { name: long }
+		});
+		expect(getTurntable(db, t.id)?.name).toBe('Living room');
+	});
+
+	it('reports a turntable deleted since the form was opened', () => {
+		const result = renameTurntableFromForm(db, 'nope', form({ name: 'Den' }));
+
+		expect(result).toMatchObject({ ok: false, errors: { form: expect.any(String) } });
 	});
 });

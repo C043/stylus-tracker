@@ -10,7 +10,7 @@ import {
 import { createTurntable, type Turntable } from '../repositories/turntables';
 import {
 	addStylusFromForm,
-	editInstalledOnFromForm,
+	editStylusFromForm,
 	replacementDefaults,
 	replaceStylusFromForm,
 	stylusDefaults
@@ -310,7 +310,7 @@ describe('replaceStylusFromForm', () => {
 	});
 });
 
-describe('editInstalledOnFromForm', () => {
+describe('editStylusFromForm', () => {
 	let active: Stylus;
 	beforeEach(() => {
 		active = addStylus(db, {
@@ -322,7 +322,7 @@ describe('editInstalledOnFromForm', () => {
 	});
 
 	const edit = (fields: Record<string, string>) =>
-		editInstalledOnFromForm(db, turntable.id, form({ stylusId: active.id, ...fields }));
+		editStylusFromForm(db, turntable.id, form({ stylusId: active.id, ...fields }));
 
 	it('moves the install date and recomputes the backfill against the day it was added', () => {
 		const result = edit({ installedOn: '2026-10-12' });
@@ -333,6 +333,29 @@ describe('editInstalledOnFromForm', () => {
 			createdOn: '2026-10-22',
 			backfilledRecords: 10
 		});
+	});
+
+	it('changes the cartridge, clearing it when left empty', () => {
+		expect(edit({ installedOn: '2026-10-20', cartridge: ' Ortofon 2M Blue ' }).ok).toBe(true);
+		expect(getStylus(db, active.id)).toMatchObject({
+			cartridge: 'Ortofon 2M Blue',
+			installedOn: '2026-10-20',
+			backfilledRecords: 2
+		});
+
+		edit({ installedOn: '2026-10-20', cartridge: '' });
+		expect(getStylus(db, active.id)?.cartridge).toBeNull();
+	});
+
+	it('rejects an over-long cartridge and echoes it back', () => {
+		const long = 'x'.repeat(81);
+
+		expect(edit({ installedOn: '2026-10-20', cartridge: long })).toMatchObject({
+			ok: false,
+			errors: { cartridge: expect.any(String) },
+			values: { cartridge: long }
+		});
+		expect(getStylus(db, active.id)?.cartridge).toBeNull();
 	});
 
 	it('drops the backfill when moved to the day it was added', () => {
@@ -367,7 +390,7 @@ describe('editInstalledOnFromForm', () => {
 			today: '2026-10-24'
 		});
 
-		const result = editInstalledOnFromForm(
+		const result = editStylusFromForm(
 			db,
 			turntable.id,
 			form({ stylusId: replacement.id, installedOn: '2026-10-19' })

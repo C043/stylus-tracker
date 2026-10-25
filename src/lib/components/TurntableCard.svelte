@@ -100,6 +100,25 @@
 				<span class="eyebrow">left</span>
 			</p>
 		{/if}
+		<!-- Renaming and deleting live on the turntables list, not the dashboard. -->
+		{#if variant === 'compact'}
+			<a
+				href={resolve('/turntables/[id]/edit', { id: turntable.id })}
+				class="-mr-1.5 grid size-11 shrink-0 place-items-center rounded-full text-cream-300 transition-colors hover:bg-cream-100/8 hover:text-cream-50 focus-visible:outline-2 focus-visible:outline-amber-glow"
+			>
+				<svg
+					viewBox="0 0 16 16"
+					class="size-4"
+					fill="none"
+					stroke="currentColor"
+					stroke-width="1.5"
+					aria-hidden="true"
+				>
+					<path d="M10.5 2.5l3 3-8 8H2.5v-3z M8.5 4.5l3 3" stroke-linejoin="round" />
+				</svg>
+				<span class="sr-only">Edit turntable {turntable.name}</span>
+			</a>
+		{/if}
 	</header>
 
 	{#if stylus && wear}
@@ -153,7 +172,7 @@
 				href={resolve('/turntables/[id]/stylus/edit', { id: turntable.id })}
 				class="btn btn-secondary px-2 text-xs"
 			>
-				Edit install date
+				Edit stylus
 			</a>
 			<a
 				href={resolve('/turntables/[id]/stylus/replace', { id: turntable.id })}

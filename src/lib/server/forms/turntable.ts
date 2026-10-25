@@ -1,6 +1,11 @@
-import { CUSTOM_CHOICE, findCatalogModel } from '../../catalog/turntables';
+import { CUSTOM_CHOICE, findCatalogModel, turntableModelName } from '../../catalog/turntables';
 import type { Db } from '../db/client';
-import { createTurntable, type Turntable } from '../repositories/turntables';
+import {
+	createTurntable,
+	getTurntable,
+	renameTurntable,
+	type Turntable
+} from '../repositories/turntables';
 import { readValues, type FormResult } from './fields';
 
 export const MAX_TEXT = 60;
@@ -32,4 +37,20 @@ export function addTurntableFromForm(db: Db, form: FormData): FormResult<Turntab
 		ok: true,
 		value: createTurntable(db, { name, catalogId: entry?.catalogId ?? null, brand, model })
 	};
+}
+
+/** Renames a turntable; a cleared name falls back to its brand and model, as when adding. */
+export function renameTurntableFromForm(
+	db: Db,
+	id: string,
+	form: FormData
+): FormResult<Turntable, 'name'> {
+	const values = readValues(form, ['name'] as const);
+	if (values.name.length > MAX_TEXT) {
+		return { ok: false, errors: { name: `Keep it under ${MAX_TEXT} characters` }, values };
+	}
+	const existing = getTurntable(db, id);
+	const renamed = existing && renameTurntable(db, id, values.name || turntableModelName(existing));
+	if (!renamed) return { ok: false, errors: { form: 'That turntable has been deleted' }, values };
+	return { ok: true, value: renamed };
 }

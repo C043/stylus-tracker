@@ -71,15 +71,25 @@ export function replaceStylus(db: Db, input: NewStylus): Stylus {
 	});
 }
 
-/** Corrects the install date; the backfill is recomputed against the original `createdOn`. */
-export function updateInstalledOn(db: Db, id: string, installedOn: LocalDate): Stylus {
+/**
+ * Corrects the active stylus's details. A new install date recomputes the backfill against the
+ * original `createdOn` (AGENTS.md §3.4).
+ */
+export function updateStylus(
+	db: Db,
+	id: string,
+	changes: { installedOn?: LocalDate; cartridge?: string | null }
+): Stylus {
 	const existing = getStylus(db, id);
 	if (!existing) throw new Error(`Stylus ${id} not found`);
+	const { installedOn } = changes;
 	return db
 		.update(stylus)
 		.set({
-			installedOn,
-			backfilledRecords: computeBackfilledRecords(installedOn, existing.createdOn)
+			...changes,
+			...(installedOn && {
+				backfilledRecords: computeBackfilledRecords(installedOn, existing.createdOn)
+			})
 		})
 		.where(eq(stylus.id, id))
 		.returning()

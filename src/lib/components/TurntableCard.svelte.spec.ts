@@ -137,11 +137,36 @@ describe('TurntableCard', () => {
 		});
 	});
 
-	it('links to correcting the install date', async () => {
+	it('links to editing the stylus', async () => {
 		render(TurntableCard, { turntable, stylus, wear, today: '2026-12-31' });
 
 		await expect
-			.element(page.getByRole('link', { name: 'Edit install date' }))
+			.element(page.getByRole('link', { name: 'Edit stylus' }))
 			.toHaveAttribute('href', '/turntables/t1/stylus/edit');
+	});
+
+	it.each([
+		['with a stylus', stylus, wear],
+		['before a stylus is added', null, null]
+	] as const)('links to editing the turntable in the list (%s)', async (_, s, w) => {
+		render(TurntableCard, {
+			turntable,
+			stylus: s,
+			wear: w,
+			today: '2026-12-31',
+			variant: 'compact'
+		});
+
+		await expect
+			.element(page.getByRole('link', { name: 'Edit turntable Living room' }))
+			.toHaveAttribute('href', '/turntables/t1/edit');
+	});
+
+	it('keeps editing the turntable off the dashboard', async () => {
+		render(TurntableCard, { turntable, stylus, wear, today: '2026-12-31' });
+
+		await expect
+			.element(page.getByRole('link', { name: 'Edit turntable Living room' }))
+			.not.toBeInTheDocument();
 	});
 });

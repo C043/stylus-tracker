@@ -14,7 +14,7 @@ import {
 	getActiveStylus,
 	listStyli,
 	replaceStylus,
-	updateInstalledOn,
+	updateStylus,
 	type NewStylus,
 	type Stylus
 } from '../repositories/styli';
@@ -160,17 +160,21 @@ export function replaceStylusFromForm(
 }
 
 /**
- * Corrects the active stylus's install date (AGENTS.md §3.4). The `stylusId` field names the
- * stylus the form was opened for, so a stale form can't move the date of its replacement.
+ * Corrects the active stylus's install date (AGENTS.md §3.4) and cartridge. The `stylusId`
+ * field names the stylus the form was opened for, so a stale form can't edit its replacement.
  */
-export function editInstalledOnFromForm(
+export function editStylusFromForm(
 	db: Db,
 	turntableId: string,
 	form: FormData
-): FormResult<Stylus, 'installedOn'> {
-	const values = readValues(form, ['installedOn'] as const);
-	const { installedOn } = values;
-	const errors: Partial<Record<'installedOn' | 'form', string>> = {};
+): FormResult<Stylus, 'installedOn' | 'cartridge'> {
+	const values = readValues(form, ['installedOn', 'cartridge'] as const);
+	const { installedOn, cartridge } = values;
+	const errors: Partial<Record<'installedOn' | 'cartridge' | 'form', string>> = {};
+
+	if (cartridge.length > MAX_CARTRIDGE) {
+		errors.cartridge = `Keep it under ${MAX_CARTRIDGE} characters`;
+	}
 
 	const active = getActiveStylus(db, turntableId);
 	if (!active || active.id !== text(form, 'stylusId')) {
@@ -189,5 +193,8 @@ export function editInstalledOnFromForm(
 	}
 
 	if (!active || Object.keys(errors).length > 0) return { ok: false, errors, values };
-	return { ok: true, value: updateInstalledOn(db, active.id, installedOn) };
+	return {
+		ok: true,
+		value: updateStylus(db, active.id, { installedOn, cartridge: cartridge || null })
+	};
 }

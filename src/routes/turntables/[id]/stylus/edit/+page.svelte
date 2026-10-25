@@ -18,14 +18,16 @@
 		return `${describeBackfill(records, installedOn, createdOn)} (one a day).`;
 	});
 	let error = $derived(form?.errors.installedOn);
+	let cartridgeError = $derived(form?.errors.cartridge);
+	let cartridge = $derived(form?.values.cartridge ?? data.stylus.cartridge ?? '');
 </script>
 
 <svelte:head>
-	<title>Edit install date · Stylus Tracker</title>
+	<title>Edit stylus · Stylus Tracker</title>
 </svelte:head>
 
 <header class="flex flex-col gap-2">
-	<p class="eyebrow text-amber-glow">Edit install date</p>
+	<p class="eyebrow text-amber-glow">Edit stylus</p>
 	<h1 class="font-display text-[2.125rem] leading-none font-semibold tracking-tight text-cream-50">
 		{data.turntable.name}
 	</h1>
@@ -39,6 +41,32 @@
 		</p>
 	{/if}
 	<input type="hidden" name="stylusId" value={data.stylus.id} />
+	<div class="flex flex-col gap-2 text-sm font-medium text-cream-100">
+		<label for="stylus-cartridge"
+			>Cartridge <span class="font-normal text-cream-300">(optional)</span></label
+		>
+		<input
+			id="stylus-cartridge"
+			name="cartridge"
+			bind:value={cartridge}
+			maxlength="80"
+			placeholder="e.g. Ortofon 2M Red"
+			autocomplete="off"
+			class="field-input"
+			aria-invalid={cartridgeError ? 'true' : undefined}
+			aria-describedby={['cartridge-hint', cartridgeError && 'cartridge-error']
+				.filter(Boolean)
+				.join(' ')}
+		/>
+		<span id="cartridge-hint" class="text-xs text-cream-300">
+			Fixes the name of this stylus. Fitted a new one? Use Replace stylus so the count starts again.
+		</span>
+		{#if cartridgeError}
+			<span id="cartridge-error" class="font-mono text-xs text-cream-50">
+				<span aria-hidden="true" class="mr-1 text-vu-soon">▲</span>{cartridgeError}
+			</span>
+		{/if}
+	</div>
 	<div class="flex flex-col gap-2 text-sm font-medium text-cream-100">
 		<label for="stylus-installed">Installed on</label>
 		<input
@@ -63,5 +91,5 @@
 		{/if}
 		<p aria-live="polite" class="min-h-5 font-mono text-xs text-amber-glow">{estimate}</p>
 	</div>
-	<button class="btn min-h-12 text-base btn-primary"> Save install date </button>
+	<button class="btn min-h-12 text-base btn-primary"> Save stylus </button>
 </form>

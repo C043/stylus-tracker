@@ -7,7 +7,7 @@ import {
 	getStylus,
 	listStyli,
 	replaceStylus,
-	updateInstalledOn
+	updateStylus
 } from './styli';
 
 let db: Db;
@@ -97,7 +97,7 @@ describe('getActiveStylus', () => {
 	});
 });
 
-describe('updateInstalledOn', () => {
+describe('updateStylus', () => {
 	it('recomputes the backfill against the original createdOn, not today', () => {
 		const s = addStylus(db, {
 			turntableId,
@@ -106,7 +106,7 @@ describe('updateInstalledOn', () => {
 			today: '2026-10-22'
 		});
 
-		const updated = updateInstalledOn(db, s.id, '2026-10-12');
+		const updated = updateStylus(db, s.id, { installedOn: '2026-10-12' });
 
 		expect(updated).toMatchObject({
 			installedOn: '2026-10-12',
@@ -124,12 +124,28 @@ describe('updateInstalledOn', () => {
 			today: TODAY
 		});
 
-		expect(() => updateInstalledOn(db, s.id, '2026-10-25')).toThrow(RangeError);
+		expect(() => updateStylus(db, s.id, { installedOn: '2026-10-25' })).toThrow(RangeError);
 		expect(getStylus(db, s.id)?.installedOn).toBe(TODAY);
 	});
 
+	it('changes the cartridge and keeps the install date and backfill', () => {
+		const s = addStylus(db, {
+			turntableId,
+			profile: 'spherical',
+			cartridge: 'Ortofon 2M Red',
+			installedOn: '2026-10-20',
+			today: '2026-10-22'
+		});
+
+		expect(updateStylus(db, s.id, { cartridge: 'Ortofon 2M Blue' })).toEqual({
+			...s,
+			cartridge: 'Ortofon 2M Blue'
+		});
+		expect(updateStylus(db, s.id, { cartridge: null })?.cartridge).toBeNull();
+	});
+
 	it('throws for an unknown stylus', () => {
-		expect(() => updateInstalledOn(db, 'nope', TODAY)).toThrow(/not found/);
+		expect(() => updateStylus(db, 'nope', { installedOn: TODAY })).toThrow(/not found/);
 	});
 });
 
