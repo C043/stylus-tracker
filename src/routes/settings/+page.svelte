@@ -16,7 +16,9 @@
 	<title>Settings · Stylus Tracker</title>
 </svelte:head>
 
-<h1 class="font-display text-3xl font-semibold text-cream-50">Settings</h1>
+<h1 class="font-display text-[2.125rem] leading-none font-semibold tracking-tight text-cream-50">
+	Settings
+</h1>
 
 <form
 	method="POST"
@@ -25,9 +27,9 @@
 			await update({ reset: false });
 			typed = undefined;
 		}}
-	class="flex flex-col gap-5 rounded-2xl recessed p-4"
+	class="flex flex-col gap-5 card p-4"
 >
-	<div class="flex flex-col gap-1.5 text-sm text-cream-100">
+	<div class="flex flex-col gap-2 text-sm font-medium text-cream-100">
 		<label for="minutes-per-side">Minutes per side</label>
 		<input
 			id="minutes-per-side"
@@ -39,7 +41,7 @@
 			step="1"
 			required
 			bind:value={() => minutes, (value) => (typed = String(value ?? ''))}
-			class="min-h-11 w-28 rounded-lg border border-alu-600 bg-walnut-950 px-3 font-mono text-cream-50 focus:border-amber-glow focus:outline-none aria-invalid:border-oxblood"
+			class="field-input w-32 text-center font-mono text-2xl font-semibold"
 			aria-invalid={error ? 'true' : undefined}
 			aria-describedby={['minutes-hint', error && 'minutes-error'].filter(Boolean).join(' ')}
 		/>
@@ -56,11 +58,7 @@
 			{#if fullRecord}A full record counts as {fullRecord} minutes of stylus time.{/if}
 		</p>
 	</div>
-	<button
-		class="min-h-12 rounded-full bg-amber-glow font-mono font-semibold text-walnut-950 shadow-[0_2px_0_var(--color-walnut-950)] active:translate-y-px"
-	>
-		Save settings
-	</button>
+	<button class="btn min-h-12 text-base btn-primary"> Save settings </button>
 	<p role="status" class="min-h-5 text-center font-mono text-xs text-cream-300">
 		{#if form?.saved && typed === undefined}Saved{/if}
 	</p>

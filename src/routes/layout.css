@@ -1,6 +1,8 @@
 @import 'tailwindcss';
-@import '@fontsource-variable/fraunces';
+/* opsz build: weight + optical size, so big headings get Fraunces' high-contrast display cut. */
+@import '@fontsource-variable/fraunces/opsz.css';
 @import '@fontsource/ibm-plex-mono/400.css';
+@import '@fontsource/ibm-plex-mono/500.css';
 @import '@fontsource/ibm-plex-mono/600.css';
 
 /* Vintage hi-fi design tokens — see AGENTS.md §5. Use these, not raw hex. */
@@ -29,6 +31,8 @@
 	--color-oxblood: #9e2a2b;
 	--color-vinyl: #0d0d0d;
 	--color-groove: #1f1f1f;
+
+	--animate-spin-slow: spin 6s linear infinite;
 }
 
 :root {
@@ -36,12 +40,30 @@
 	--wood-grain:
 		repeating-linear-gradient(
 			92deg,
-			rgb(0 0 0 / 0.08) 0 2px,
+			rgb(0 0 0 / 0.07) 0 2px,
 			transparent 2px 7px,
-			rgb(255 255 255 / 0.03) 7px 8px,
+			rgb(255 255 255 / 0.025) 7px 8px,
 			transparent 8px 15px
 		),
-		linear-gradient(180deg, var(--color-walnut-800), var(--color-walnut-950));
+		linear-gradient(180deg, var(--color-walnut-800), var(--color-walnut-950) 70%);
+	/* Warm lamp light falling on the cabinet from above. */
+	--lamp: radial-gradient(
+		120% 60% at 50% -10%,
+		rgb(255 179 71 / 0.16),
+		rgb(255 179 71 / 0.04) 45%,
+		transparent 70%
+	);
+	/* Vinyl grooves with a soft light sheen, for record discs drawn in CSS. */
+	--vinyl-grooves:
+		conic-gradient(
+			from 30deg,
+			transparent 0 10%,
+			rgb(255 255 255 / 0.1) 14%,
+			transparent 20% 60%,
+			rgb(255 255 255 / 0.08) 64%,
+			transparent 70%
+		),
+		repeating-radial-gradient(circle, var(--color-vinyl) 0 2px, var(--color-groove) 2px 3px);
 }
 
 html,
@@ -50,10 +72,15 @@ body {
 }
 
 body {
-	background: var(--wood-grain);
-	background-color: var(--color-walnut-900);
+	background:
+		var(--lamp) fixed,
+		var(--wood-grain) fixed;
+	background-color: var(--color-walnut-950);
 	color: var(--color-cream-100);
 	font-family: var(--font-display);
+	font-optical-sizing: auto;
+	-webkit-font-smoothing: antialiased;
+	-webkit-tap-highlight-color: transparent;
 	/* Bottom inset is handled by <main> and the fixed bottom nav. */
 	padding: env(safe-area-inset-top) env(safe-area-inset-right) 0 env(safe-area-inset-left);
 }
@@ -65,7 +92,7 @@ body::before {
 	inset: 0;
 	z-index: 20;
 	pointer-events: none;
-	opacity: 0.07;
+	opacity: 0.06;
 	mix-blend-mode: overlay;
 	background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
 }
@@ -77,6 +104,103 @@ body::before {
 		inset 0 2px 6px rgb(0 0 0 / 0.6),
 		inset 0 -1px 0 rgb(255 255 255 / 0.05),
 		0 1px 0 rgb(255 255 255 / 0.04);
+}
+
+/* Smoked-glass panel over the wood: the main card surface. */
+@utility card {
+	border-radius: 1.5rem;
+	border: 1px solid rgb(243 232 207 / 0.09);
+	background:
+		linear-gradient(180deg, rgb(255 255 255 / 0.045), transparent 40%), rgb(28 18 12 / 0.62);
+	box-shadow:
+		inset 0 1px 0 rgb(255 255 255 / 0.06),
+		0 1px 2px rgb(0 0 0 / 0.4),
+		0 18px 40px -18px rgb(0 0 0 / 0.7);
+	backdrop-filter: blur(10px);
+}
+
+/* Small uppercase label above titles and stats. */
+@utility eyebrow {
+	font-family: var(--font-mono);
+	font-size: 0.6875rem;
+	line-height: 1rem;
+	letter-spacing: 0.14em;
+	text-transform: uppercase;
+	color: var(--color-cream-300);
+}
+
+@utility btn {
+	display: inline-flex;
+	min-height: 2.75rem;
+	align-items: center;
+	justify-content: center;
+	gap: 0.5rem;
+	border-radius: 9999px;
+	padding-inline: 1.125rem;
+	font-family: var(--font-mono);
+	font-size: 0.875rem;
+	font-weight: 500;
+	transition:
+		translate 75ms,
+		background-color 150ms,
+		border-color 150ms,
+		color 150ms;
+	&:active {
+		translate: 0 1px;
+	}
+	&:focus-visible {
+		outline: 2px solid var(--color-amber-glow);
+		outline-offset: 2px;
+	}
+}
+
+/* Amber, lit like a VU lamp. Pair with `btn`. */
+@utility btn-primary {
+	background: linear-gradient(180deg, var(--color-amber-glow), var(--color-vu-soon));
+	color: var(--color-walnut-950);
+	font-weight: 600;
+	box-shadow:
+		inset 0 1px 0 rgb(255 255 255 / 0.35),
+		0 6px 18px -6px rgb(255 179 71 / 0.55);
+}
+
+/* Hairline outline on glass. Pair with `btn`. */
+@utility btn-secondary {
+	border: 1px solid rgb(243 232 207 / 0.16);
+	background-color: rgb(255 255 255 / 0.04);
+	color: var(--color-cream-100);
+	&:hover {
+		border-color: rgb(243 232 207 / 0.3);
+		background-color: rgb(255 255 255 / 0.07);
+	}
+}
+
+/* Text inputs and selects. */
+@utility field-input {
+	min-height: 3rem;
+	width: 100%;
+	border-radius: 0.75rem;
+	border: 1px solid rgb(243 232 207 / 0.12);
+	background-color: rgb(0 0 0 / 0.32);
+	padding-inline: 0.875rem;
+	color: var(--color-cream-50);
+	box-shadow: inset 0 1px 3px rgb(0 0 0 / 0.45);
+	transition:
+		border-color 150ms,
+		box-shadow 150ms;
+	&::placeholder {
+		color: var(--color-alu-600);
+	}
+	&:focus {
+		outline: none;
+		border-color: var(--color-amber-glow);
+		box-shadow:
+			inset 0 1px 3px rgb(0 0 0 / 0.45),
+			0 0 0 3px rgb(255 179 71 / 0.18);
+	}
+	&[aria-invalid='true'] {
+		border-color: var(--color-oxblood);
+	}
 }
 
 @media (prefers-reduced-motion: reduce) {

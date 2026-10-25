@@ -50,47 +50,52 @@
 	};
 </script>
 
-<div class="flex flex-col gap-3">
-	<form method="POST" action="?/play" use:enhance={logPlay} class="grid grid-cols-2 gap-3">
+<div class="flex flex-col gap-2">
+	<form method="POST" action="?/play" use:enhance={logPlay} class="grid grid-cols-2 gap-2.5">
 		<input type="hidden" name="stylusId" value={stylusId} />
 		{#each KEYS as key (key.kind)}
-			<!-- Piano-key switch: brushed aluminium, travels down when pressed. -->
+			<!-- Piano-key switch: travels down when pressed. Full record is the lit key. -->
 			<button
 				name="kind"
 				value={key.kind}
 				data-spins={spins[key.kind]}
 				onclick={() => press(key.kind)}
-				class="flex min-h-20 items-center gap-3 rounded-lg border border-alu-600 bg-[linear-gradient(180deg,var(--color-alu-200),var(--color-alu-400))] px-3 text-left text-walnut-950 shadow-[0_4px_0_var(--color-alu-600),0_6px_8px_rgb(0_0_0/0.5)] transition-[translate,box-shadow] duration-75 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-glow active:translate-y-1 active:shadow-[0_0_0_var(--color-alu-600),0_1px_2px_rgb(0_0_0/0.5)]"
+				class={[
+					'group flex min-h-18 items-center gap-2.5 rounded-2xl px-2.5 text-left transition-[translate,box-shadow] duration-75 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-glow active:translate-y-[3px]',
+					key.kind === 'full'
+						? 'bg-[linear-gradient(180deg,var(--color-amber-glow),var(--color-vu-soon))] text-walnut-950 shadow-[inset_0_1px_0_rgb(255_255_255/0.4),0_3px_0_var(--color-walnut-700),0_10px_20px_-8px_rgb(255_179_71/0.5)] active:shadow-[inset_0_1px_0_rgb(255_255_255/0.4),0_0_0_var(--color-walnut-700)]'
+						: 'bg-[linear-gradient(180deg,var(--color-alu-200),var(--color-alu-400))] text-walnut-950 shadow-[inset_0_1px_0_rgb(255_255_255/0.7),0_3px_0_var(--color-alu-600),0_10px_20px_-10px_rgb(0_0_0/0.8)] active:shadow-[inset_0_1px_0_rgb(255_255_255/0.7),0_0_0_var(--color-alu-600)]'
+				]}
 			>
 				{#key spins[key.kind]}
 					<span
 						aria-hidden="true"
 						class={[
-							'grid size-10 shrink-0 place-items-center rounded-full bg-vinyl',
+							'grid size-9 shrink-0 place-items-center rounded-full bg-vinyl [background-image:var(--vinyl-grooves)] shadow-[0_2px_6px_rgb(0_0_0/0.45)]',
 							spins[key.kind] > 0 && 'motion-safe:animate-[spin_0.9s_ease-out]'
 						]}
-						style="background-image: repeating-radial-gradient(circle, var(--color-vinyl) 0 2px, var(--color-groove) 2px 3px);"
 					>
 						<!-- Record label; half of it for one side. -->
 						<span
 							class={[
-								'size-4 rounded-full bg-amber-glow',
+								'size-3.5 rounded-full',
+								key.kind === 'full' ? 'bg-cream-100' : 'bg-amber-glow',
 								key.kind === 'side' && '[clip-path:inset(0_50%_0_0)]'
 							]}
 						></span>
 					</span>
 				{/key}
-				<span class="flex flex-col leading-tight">
-					<span class="font-display text-base font-semibold">{key.label}</span>
-					<span aria-hidden="true" class="font-mono text-xs text-walnut-800">{key.hint}</span>
+				<span class="flex min-w-0 flex-col leading-tight">
+					<span class="font-display text-base font-semibold whitespace-nowrap">{key.label}</span>
+					<span aria-hidden="true" class="font-mono text-[0.6875rem] opacity-70">{key.hint}</span>
 				</span>
 			</button>
 		{/each}
 	</form>
 
 	{#if message}
-		<p role="alert" class="font-mono text-xs text-cream-50">
-			<span aria-hidden="true" class="mr-1 text-vu-soon">▲</span>{message}
+		<p role="alert" class="flex items-center gap-1.5 font-mono text-xs text-cream-50">
+			<span aria-hidden="true" class="text-vu-soon">▲</span>{message}
 		</p>
 	{/if}
 
@@ -98,8 +103,19 @@
 		<form method="POST" action="?/undo" use:enhance={undo} class="self-center">
 			<input type="hidden" name="stylusId" value={stylusId} />
 			<button
-				class="inline-flex min-h-11 items-center rounded-full px-4 font-mono text-xs text-cream-300 underline decoration-dotted underline-offset-4"
+				class="inline-flex min-h-11 items-center gap-1.5 rounded-full px-4 font-mono text-xs text-cream-300 transition-colors hover:text-cream-50"
 			>
+				<svg
+					viewBox="0 0 16 16"
+					class="size-3.5"
+					fill="none"
+					stroke="currentColor"
+					stroke-width="1.5"
+					aria-hidden="true"
+				>
+					<path d="M3 6h7a3.5 3.5 0 0 1 0 7H6" stroke-linecap="round" />
+					<path d="M5.5 3.5 3 6l2.5 2.5" stroke-linecap="round" stroke-linejoin="round" />
+				</svg>
 				Undo last play
 			</button>
 		</form>

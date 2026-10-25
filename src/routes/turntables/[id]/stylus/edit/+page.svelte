@@ -24,20 +24,22 @@
 	<title>Edit install date · Stylus Tracker</title>
 </svelte:head>
 
-<header>
-	<p class="font-mono text-xs tracking-wide text-cream-300 uppercase">Edit install date</p>
-	<h1 class="font-display text-3xl font-semibold text-cream-50">{data.turntable.name}</h1>
+<header class="flex flex-col gap-2">
+	<p class="eyebrow text-amber-glow">Edit install date</p>
+	<h1 class="font-display text-[2.125rem] leading-none font-semibold tracking-tight text-cream-50">
+		{data.turntable.name}
+	</h1>
 	<p class="font-mono text-xs text-cream-300">{data.modelName}</p>
 </header>
 
-<form method="POST" use:enhance class="flex flex-col gap-5 rounded-2xl recessed p-4">
+<form method="POST" use:enhance class="flex flex-col gap-5 card p-4">
 	{#if form?.errors.form}
-		<p role="alert" class="rounded-lg bg-oxblood px-3 py-2 text-sm text-cream-50">
+		<p role="alert" class="rounded-xl bg-oxblood/90 px-3.5 py-2.5 text-sm text-cream-50">
 			{form.errors.form}
 		</p>
 	{/if}
 	<input type="hidden" name="stylusId" value={data.stylus.id} />
-	<div class="flex flex-col gap-1.5 text-sm text-cream-100">
+	<div class="flex flex-col gap-2 text-sm font-medium text-cream-100">
 		<label for="stylus-installed">Installed on</label>
 		<input
 			id="stylus-installed"
@@ -46,7 +48,7 @@
 			max={createdOn}
 			required
 			bind:value={() => installedOn, (value) => (picked = value)}
-			class="min-h-11 w-full rounded-lg border border-alu-600 bg-walnut-950 px-3 font-mono text-cream-50 focus:border-amber-glow focus:outline-none aria-invalid:border-oxblood"
+			class="field-input font-mono"
 			aria-invalid={error ? 'true' : undefined}
 			aria-describedby={['installed-hint', error && 'installed-error'].filter(Boolean).join(' ')}
 		/>
@@ -61,9 +63,5 @@
 		{/if}
 		<p aria-live="polite" class="min-h-5 font-mono text-xs text-amber-glow">{estimate}</p>
 	</div>
-	<button
-		class="min-h-12 rounded-full bg-amber-glow font-mono font-semibold text-walnut-950 shadow-[0_2px_0_var(--color-walnut-950)] active:translate-y-px"
-	>
-		Save install date
-	</button>
+	<button class="btn min-h-12 text-base btn-primary"> Save install date </button>
 </form>

@@ -20,11 +20,14 @@
 		href === '/' ? pathname === '/' : pathname === href || pathname.startsWith(`${href}/`);
 </script>
 
+<!-- Floating dock: a brushed-metal strip hovering over the cabinet, lit on the current input. -->
 <nav
 	aria-label="Main"
-	class="fixed inset-x-0 bottom-0 z-10 border-t border-alu-600/60 bg-walnut-950/95 pb-[env(safe-area-inset-bottom)] shadow-[0_-8px_24px_rgb(0_0_0/0.45)] backdrop-blur"
+	class="pointer-events-none fixed inset-x-0 bottom-0 z-10 px-[max(0.75rem,env(safe-area-inset-left))] pb-[max(0.75rem,env(safe-area-inset-bottom))]"
 >
-	<ul class="mx-auto grid max-w-md grid-cols-4 px-[max(1rem,env(safe-area-inset-left))]">
+	<ul
+		class="pointer-events-auto mx-auto grid max-w-md grid-cols-4 gap-1 rounded-[1.75rem] border border-cream-100/10 bg-walnut-950/80 p-1.5 shadow-[inset_0_1px_0_rgb(255_255_255/0.06),0_12px_32px_-8px_rgb(0_0_0/0.8)] backdrop-blur-xl"
+	>
 		{#each tabs as tab (tab.href)}
 			{@const active = isActive(tab.href)}
 			<li>
@@ -32,13 +35,18 @@
 					href={resolve(tab.href)}
 					aria-current={active ? 'page' : undefined}
 					class={[
-						'flex min-h-14 min-w-11 flex-col items-center justify-center gap-1 font-mono text-xs tracking-wide uppercase transition-colors',
-						active ? 'text-amber-glow' : 'text-alu-400 hover:text-cream-100'
+						'relative flex min-h-13 min-w-11 flex-col items-center justify-center gap-0.5 rounded-[1.375rem] font-mono text-[0.625rem] font-medium tracking-wider uppercase transition-colors focus-visible:outline-2 focus-visible:outline-amber-glow',
+						active
+							? 'bg-amber-glow/12 text-amber-glow shadow-[inset_0_0_0_1px_rgb(255_179_71/0.25)]'
+							: 'text-alu-400 hover:text-cream-100'
 					]}
 				>
 					<svg
 						viewBox="0 0 24 24"
-						class="size-6"
+						class={[
+							'size-6 transition-transform',
+							active && 'drop-shadow-[0_0_6px_rgb(255_179_71/0.6)]'
+						]}
 						fill="none"
 						stroke="currentColor"
 						stroke-width="1.6"
@@ -66,14 +74,6 @@
 						{/if}
 					</svg>
 					{tab.label}
-					<!-- Pilot lamp: lit on the current tab, like a hi-fi input selector. -->
-					<span
-						aria-hidden="true"
-						class={[
-							'size-1 rounded-full transition-colors',
-							active ? 'bg-amber-glow shadow-[0_0_6px_var(--color-amber-glow)]' : 'bg-walnut-700'
-						]}
-					></span>
 				</a>
 			</li>
 		{/each}

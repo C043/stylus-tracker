@@ -37,9 +37,8 @@
 	}: (typeof STYLUS_PROFILES)[keyof typeof STYLUS_PROFILES]) =>
 		range ? `${label} · ${range[0]}–${range[1]} h` : `${label} (enter hours)`;
 
-	const input =
-		'min-h-11 w-full rounded-lg border border-alu-600 bg-walnut-950 px-3 text-cream-50 placeholder:text-alu-400 focus:border-amber-glow focus:outline-none aria-invalid:border-oxblood';
-	const field = 'flex flex-col gap-1.5 text-sm text-cream-100';
+	const input = 'field-input';
+	const field = 'flex flex-col gap-2 text-sm font-medium text-cream-100';
 	const describedBy = (...ids: (string | false | undefined)[]) =>
 		ids.filter(Boolean).join(' ') || undefined;
 </script>
@@ -96,7 +95,9 @@
 {/if}
 
 <div class={field}>
-	<label for="stylus-cartridge">Cartridge <span class="text-cream-300">(optional)</span></label>
+	<label for="stylus-cartridge"
+		>Cartridge <span class="font-normal text-cream-300">(optional)</span></label
+	>
 	<input
 		id="stylus-cartridge"
 		name="cartridge"

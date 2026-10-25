@@ -11,15 +11,24 @@
 	<title>Turntables · Stylus Tracker</title>
 </svelte:head>
 
-<div class="flex items-center justify-between gap-3">
-	<h1 class="font-display text-3xl font-semibold text-cream-50">Turntables</h1>
-	<a
-		href={resolve('/turntables/new')}
-		class="inline-flex min-h-11 items-center rounded-full bg-amber-glow px-4 font-mono text-sm font-semibold text-walnut-950"
-	>
-		Add a turntable
+<header class="flex items-end justify-between gap-3">
+	<h1 class="font-display text-[2.125rem] leading-none font-semibold tracking-tight text-cream-50">
+		Turntables
+	</h1>
+	<a href={resolve('/turntables/new')} class="btn px-3.5 btn-primary">
+		<svg
+			viewBox="0 0 16 16"
+			class="size-3.5"
+			fill="none"
+			stroke="currentColor"
+			stroke-width="2"
+			aria-hidden="true"
+		>
+			<path d="M8 3v10M3 8h10" stroke-linecap="round" />
+		</svg>
+		Add<span class="sr-only"> a turntable</span>
 	</a>
-</div>
+</header>
 
 {#each data.rows as row (row.turntable.id)}
 	<TurntableCard
@@ -30,7 +39,7 @@
 		variant="compact"
 	/>
 {:else}
-	<section class="rounded-2xl recessed px-6 py-8 text-center">
+	<section class="card px-6 py-10 text-center">
 		<p class="text-cream-300">No turntables yet. Add the first one above.</p>
 	</section>
 {/each}

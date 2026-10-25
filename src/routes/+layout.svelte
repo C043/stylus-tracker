@@ -16,10 +16,20 @@
 	<link rel="icon" href="/icons/icon.svg" />
 </svelte:head>
 
-<!-- Bottom padding reserves the nav's height (56px + border) plus the home-indicator inset. -->
+<!-- Bottom padding reserves the floating dock (64px + its 12px gap) plus the home-indicator inset. -->
 <main
-	class="mx-auto flex min-h-dvh max-w-md flex-col gap-6 px-4 pt-6 pb-[calc(4.5rem+env(safe-area-inset-bottom))]"
+	class="mx-auto flex min-h-dvh max-w-md flex-col gap-5 px-4 pt-4 pb-[calc(6rem+env(safe-area-inset-bottom))]"
 >
+	<!-- Brand plate: a tiny record and the name, engraved like a cabinet badge. -->
+	<div class="flex items-center gap-2 pt-1" aria-hidden="true">
+		<span
+			class="grid size-5 place-items-center rounded-full bg-vinyl [background-image:var(--vinyl-grooves)]"
+		>
+			<span class="size-2 rounded-full bg-amber-glow"></span>
+		</span>
+		<span class="eyebrow">Stylus Tracker</span>
+	</div>
+
 	{#if outbox.rejection}
 		<div role="alert" class="flex items-center gap-3 card px-4 py-3">
 			<p class="flex-1 font-mono text-xs text-cream-50">

@@ -13,11 +13,10 @@
 	let values = $derived(form?.values);
 	let errors = $derived(form?.errors ?? {});
 
-	const input =
-		'min-h-11 w-full rounded-lg border border-alu-600 bg-walnut-950 px-3 text-cream-50 placeholder:text-alu-400 focus:border-amber-glow focus:outline-none aria-invalid:border-oxblood';
+	const input = 'field-input';
 	// A radio styled as a card; the ring shows the checked and keyboard-focused states.
 	const choice =
-		'relative flex min-h-11 cursor-pointer flex-col items-center gap-2 rounded-xl border border-walnut-700 bg-walnut-950/50 p-2 text-center has-checked:border-amber-glow has-checked:bg-walnut-800 has-checked:shadow-[0_0_0_1px_var(--color-amber-glow)] has-focus-visible:outline-2 has-focus-visible:outline-amber-glow';
+		'group/choice relative flex min-h-11 cursor-pointer flex-col items-center gap-2 overflow-hidden rounded-2xl border border-cream-100/10 bg-black/25 p-1.5 pb-2.5 text-center transition-[border-color,background-color,box-shadow] hover:border-cream-100/20 has-checked:border-amber-glow has-checked:bg-amber-glow/10 has-checked:shadow-[0_0_0_1px_var(--color-amber-glow),0_8px_24px_-10px_rgb(255_179_71/0.5)] has-focus-visible:outline-2 has-focus-visible:outline-offset-2 has-focus-visible:outline-amber-glow';
 </script>
 
 <svelte:head>
@@ -32,9 +31,11 @@
 	{/if}
 {/snippet}
 
-<header>
-	<p class="font-mono text-xs tracking-wide text-cream-300 uppercase">Step 1 of 2 · Turntable</p>
-	<h1 class="font-display text-3xl font-semibold text-cream-50">Add a turntable</h1>
+<header class="flex flex-col gap-2">
+	<p class="eyebrow text-amber-glow">Step 1 of 2 · Turntable</p>
+	<h1 class="font-display text-[2.125rem] leading-none font-semibold tracking-tight text-cream-50">
+		Add a turntable
+	</h1>
 </header>
 
 <form method="POST" use:enhance class="group flex flex-col gap-6">
@@ -42,15 +43,15 @@
 		class="flex min-w-0 flex-col gap-4"
 		aria-describedby={errors.catalogId ? 'catalog-error' : undefined}
 	>
-		<legend class="mb-2 text-sm text-cream-100">Which turntable?</legend>
+		<legend class="mb-1 text-sm font-medium text-cream-100">Which turntable?</legend>
 		{@render fieldError('catalog-error', errors.catalogId)}
 
-		<nav aria-label="Jump to brand" class="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1">
+		<nav
+			aria-label="Jump to brand"
+			class="-mx-4 flex [scrollbar-width:none] gap-2 overflow-x-auto px-4 pb-1"
+		>
 			{#each catalog as brand (brand.id)}
-				<a
-					href={`#brand-${brand.id}`}
-					class="inline-flex min-h-11 shrink-0 items-center rounded-full border border-alu-600 px-3 font-mono text-xs text-cream-100"
-				>
+				<a href={`#brand-${brand.id}`} class="btn shrink-0 btn-secondary px-3.5 text-xs">
 					{brand.brand}
 				</a>
 			{/each}
@@ -62,9 +63,15 @@
 				name="catalogId"
 				value={CUSTOM_CHOICE}
 				checked={values?.catalogId === CUSTOM_CHOICE}
-				class="absolute inset-0 size-full cursor-pointer appearance-none rounded-xl opacity-0"
+				class="absolute inset-0 z-10 size-full cursor-pointer appearance-none rounded-2xl opacity-0"
 			/>
-			<img src={CUSTOM_IMAGE} alt="" width="64" height="64" class="size-16" />
+			<img
+				src={CUSTOM_IMAGE}
+				alt=""
+				width="64"
+				height="64"
+				class="size-16 rounded-xl bg-black/30 p-1"
+			/>
 			<span>
 				<span class="block font-display text-lg text-cream-50">Custom</span>
 				<span class="font-mono text-xs text-cream-300">Not listed? Type the brand and model.</span>
@@ -72,10 +79,8 @@
 		</label>
 
 		<!-- Shown only while Custom is checked; pure CSS so it works before JS loads. -->
-		<div
-			class="hidden flex-col gap-4 rounded-xl recessed p-4 group-has-[input[value=custom]:checked]:flex"
-		>
-			<div class="flex flex-col gap-1.5 text-sm text-cream-100">
+		<div class="hidden flex-col gap-4 card p-4 group-has-[input[value=custom]:checked]:flex">
+			<div class="flex flex-col gap-2 text-sm font-medium text-cream-100">
 				<label for="custom-brand">Brand</label>
 				<input
 					id="custom-brand"
@@ -89,7 +94,7 @@
 				/>
 				{@render fieldError('brand-error', errors.brand)}
 			</div>
-			<div class="flex flex-col gap-1.5 text-sm text-cream-100">
+			<div class="flex flex-col gap-2 text-sm font-medium text-cream-100">
 				<label for="custom-model">Model</label>
 				<input
 					id="custom-model"
@@ -111,7 +116,10 @@
 				class="scroll-mt-4"
 				aria-labelledby={`brand-${brand.id}-name`}
 			>
-				<h2 id={`brand-${brand.id}-name`} class="mb-2 font-display text-lg text-cream-50">
+				<h2
+					id={`brand-${brand.id}-name`}
+					class="mb-2.5 font-display text-xl font-semibold text-cream-50"
+				>
 					{brand.brand}
 				</h2>
 				<div class="grid grid-cols-2 gap-3">
@@ -123,7 +131,7 @@
 								name="catalogId"
 								value={catalogId}
 								checked={values?.catalogId === catalogId}
-								class="absolute inset-0 size-full cursor-pointer appearance-none rounded-xl opacity-0"
+								class="absolute inset-0 z-10 size-full cursor-pointer appearance-none rounded-2xl opacity-0"
 							/>
 							<img
 								src={model.image ?? PLACEHOLDER_IMAGE}
@@ -131,9 +139,9 @@
 								width="240"
 								height="180"
 								loading="lazy"
-								class="aspect-4/3 w-full object-contain"
+								class="aspect-4/3 w-full rounded-xl object-cover transition-transform duration-300 group-hover/choice:scale-[1.03]"
 							/>
-							<span class="font-mono text-xs text-cream-100">
+							<span class="font-mono text-xs font-medium text-cream-100">
 								<span class="sr-only">{brand.brand} </span>{model.model}
 							</span>
 						</label>
@@ -145,10 +153,12 @@
 
 	<!-- Sticky so the next step stays in thumb reach while scrolling the catalog. -->
 	<div
-		class="sticky bottom-[calc(4.5rem+env(safe-area-inset-bottom))] -mx-4 flex flex-col gap-3 border-t border-walnut-700 bg-walnut-900/95 px-4 py-3 backdrop-blur"
+		class="sticky bottom-[calc(5.25rem+env(safe-area-inset-bottom))] flex flex-col gap-3 card bg-walnut-950/85 p-3.5 backdrop-blur-xl"
 	>
-		<div class="flex flex-col gap-1.5 text-sm text-cream-100">
-			<label for="turntable-name">Nickname <span class="text-cream-300">(optional)</span></label>
+		<div class="flex flex-col gap-2 text-sm font-medium text-cream-100">
+			<label for="turntable-name"
+				>Nickname <span class="font-normal text-cream-300">(optional)</span></label
+			>
 			<input
 				id="turntable-name"
 				name="name"
@@ -162,10 +172,6 @@
 			/>
 			{@render fieldError('name-error', errors.name)}
 		</div>
-		<button
-			class="min-h-12 rounded-full bg-amber-glow font-mono font-semibold text-walnut-950 shadow-[0_2px_0_var(--color-walnut-950)] active:translate-y-px"
-		>
-			Next: stylus
-		</button>
+		<button class="btn min-h-12 text-base btn-primary"> Next: stylus </button>
 	</div>
 </form>

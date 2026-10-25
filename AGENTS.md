@@ -224,6 +224,9 @@ Feel: a 1970s hi-fi cabinet. Walnut veneer, brushed aluminium, cream labels, amb
 spinning records. Slick, not kitsch.
 
 Design tokens are in `src/routes/layout.css` (`@theme`). Use the tokens, don't hard-code hex values.
+Shared surface utilities live there too; use them instead of repeating long class strings:
+`card` (smoked-glass panel), `btn` + `btn-primary` / `btn-secondary`, `field-input`, `eyebrow`,
+and `--vinyl-grooves` (CSS record disc background).
 
 - **Palette**: walnut/rosewood browns (backgrounds), brushed aluminium (cards, knobs),
   cream/ivory (text, record labels), amber/orange VU glow (accent), oxblood red (danger),
