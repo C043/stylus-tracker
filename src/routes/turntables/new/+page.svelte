@@ -20,9 +20,10 @@
 	let nickname = $derived(values?.name ?? '');
 
 	const input = 'field-input';
-	// A radio styled as a card; the ring shows the checked and keyboard-focused states.
+	// A radio styled as a card; the ring shows the checked and keyboard-focused states. `isolate`
+	// keeps its full-size radio overlay (z-10) inside the card, so it can't sit above the sticky panel.
 	const choice =
-		'group/choice relative flex min-h-11 cursor-pointer flex-col items-center gap-2 overflow-hidden rounded-2xl border border-cream-100/10 bg-black/25 p-1.5 pb-2.5 text-center transition-[border-color,background-color,box-shadow] hover:border-cream-100/20 has-checked:border-amber-glow has-checked:bg-amber-glow/10 has-checked:shadow-[0_0_0_1px_var(--color-amber-glow),0_8px_24px_-10px_rgb(255_179_71/0.5)] has-focus-visible:outline-2 has-focus-visible:outline-offset-2 has-focus-visible:outline-amber-glow';
+		'group/choice relative isolate flex min-h-11 cursor-pointer flex-col items-center gap-2 overflow-hidden rounded-2xl border border-cream-100/10 bg-black/25 p-1.5 pb-2.5 text-center transition-[border-color,background-color,box-shadow] hover:border-cream-100/20 has-checked:border-amber-glow has-checked:bg-amber-glow/10 has-checked:shadow-[0_0_0_1px_var(--color-amber-glow),0_8px_24px_-10px_rgb(255_179_71/0.5)] has-focus-visible:outline-2 has-focus-visible:outline-offset-2 has-focus-visible:outline-amber-glow';
 </script>
 
 <svelte:head>
@@ -159,7 +160,7 @@
 
 	<!-- Sticky so the next step stays in thumb reach while scrolling the catalog. -->
 	<div
-		class="sticky bottom-[calc(5.25rem+env(safe-area-inset-bottom))] flex flex-col gap-3 card bg-walnut-950/85 p-3.5 backdrop-blur-xl"
+		class="sticky bottom-[calc(5.25rem+env(safe-area-inset-bottom))] z-10 flex flex-col gap-3 card bg-walnut-950/85 p-3.5 backdrop-blur-xl"
 	>
 		<div class="flex flex-col gap-2 text-sm font-medium text-cream-100">
 			<label for="turntable-name"

@@ -66,6 +66,47 @@ test('keeps a turntable picked before the page finished loading', async ({ page 
 	await expect(page).toHaveURL(/stylus\/new$/);
 });
 
+test.describe('on a phone', () => {
+	test.use({ viewport: { width: 390, height: 844 }, hasTouch: true });
+
+	test('taps on the sticky nickname panel never reach the turntables under it', async ({
+		page
+	}) => {
+		await page.goto('/turntables/new');
+		await page.getByRole('radio', { name: 'Technics SL-1500C' }).check();
+		const panel = page.getByLabel('Nickname').locator('xpath=../..');
+
+		for (const scrollY of [0, 300, 900]) {
+			await page.evaluate((y) => window.scrollTo(0, y), scrollY);
+			// Every point of the panel must hit the panel itself, not a catalog card beneath it.
+			// Inset past the rounded corners, which really are see-through.
+			const leaks = await panel.evaluate((el) => {
+				const b = el.getBoundingClientRect();
+				const out: string[] = [];
+				for (let x = b.left + 12; x < b.right - 12; x += 16)
+					for (let y = b.top + 12; y < b.bottom - 12; y += 8) {
+						const hit = document.elementFromPoint(x, y);
+						if (hit && !el.contains(hit)) out.push(hit.getAttribute('value') ?? hit.tagName);
+					}
+				return [...new Set(out)];
+			});
+			expect(leaks, `scrolled to ${scrollY}`).toEqual([]);
+		}
+
+		// Tap near the left edge, right over the first catalog column.
+		const tapLeft = async (role: 'textbox' | 'button', name: string) => {
+			const box = (await page.getByRole(role, { name }).boundingBox())!;
+			await page.touchscreen.tap(box.x + 12, box.y + box.height / 2);
+		};
+		await tapLeft('textbox', 'Nickname');
+		await expect(page.getByLabel('Nickname')).toBeFocused();
+		await expect(page.getByRole('radio', { name: 'Technics SL-1500C' })).toBeChecked();
+		await tapLeft('button', 'Next: stylus');
+		await expect(page).toHaveURL(/stylus\/new$/);
+		await expect(page.getByLabel('Cartridge')).toHaveValue('Ortofon 2M Red');
+	});
+});
+
 test('add a custom turntable with a custom lifespan', async ({ page }) => {
 	const model = `Suitcase ${Date.now()}`;
 
