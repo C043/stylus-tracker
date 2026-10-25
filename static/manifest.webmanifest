@@ -1,6 +1,6 @@
 {
 	"name": "Stylus Tracker",
-	"short_name": "Stylus",
+	"short_name": "Stylus Tracker",
 	"description": "Know how many records your stylus has left.",
 	"start_url": "/",
 	"scope": "/",

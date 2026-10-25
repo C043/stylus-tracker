@@ -6,6 +6,8 @@ import { describe, expect, it } from 'vitest';
 type ManifestIcon = { src: string; sizes: string; type: string; purpose?: string };
 
 const manifest = JSON.parse(readFileSync('static/manifest.webmanifest', 'utf8')) as {
+	name: string;
+	short_name: string;
 	icons: ManifestIcon[];
 };
 const appHtml = readFileSync('src/app.html', 'utf8');
@@ -59,5 +61,19 @@ describe('PWA icons', () => {
 		)?.[1];
 		expect(href).toBeDefined();
 		expect(pngSize(staticPath(href!))).toEqual({ width: 180, height: 180 });
+	});
+});
+
+// The label under the home-screen icon: Android reads short_name, iOS the apple title meta.
+describe('PWA name', () => {
+	it('is "Stylus Tracker" in the manifest, short name included', () => {
+		expect(manifest.name).toBe('Stylus Tracker');
+		expect(manifest.short_name).toBe('Stylus Tracker');
+	});
+
+	it('is "Stylus Tracker" on the iOS home screen', () => {
+		expect(appHtml).toContain(
+			'<meta name="apple-mobile-web-app-title" content="Stylus Tracker" />'
+		);
 	});
 });
