@@ -233,8 +233,10 @@ and `--vinyl-grooves` (CSS record disc background).
   black vinyl.
 - **Type**: `Fraunces` (display/headings, soft retro serif), `IBM Plex Mono` (numbers,
   counters, meter readouts). Both self-hosted.
-- **Textures**: subtle wood grain (CSS gradients or a small tiled WebP, < 30 KB), grain/noise
-  overlay, soft inner shadows like recessed panels.
+- **Textures**: the page is smoked walnut (`--smoked-walnut`: plain dark gradient + vignette, no
+  grain lines) under a warm lamp glow, with a giant faint record centred above the page whose
+  grooves show behind the header (`body::after`). Wood grain (`--wood-grain`) only on small
+  accents such as the turntable plinth. Grain/noise overlay, soft inner shadows like recessed panels.
 - **Signature components**:
   - **Remaining-records gauge**: a vinyl record whose grooves "fill up" with wear, or an analog
     VU-meter needle swinging from good → replace. The big number is the remaining records.

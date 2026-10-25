@@ -46,6 +46,10 @@
 			transparent 8px 15px
 		),
 		linear-gradient(180deg, var(--color-walnut-800), var(--color-walnut-950) 70%);
+	/* Page backdrop: dark smoked walnut, no grain lines, darker towards the edges. */
+	--smoked-walnut:
+		radial-gradient(140% 90% at 50% 30%, transparent 40%, rgb(0 0 0 / 0.45) 100%),
+		linear-gradient(180deg, var(--color-walnut-900), var(--color-walnut-950) 60%);
 	/* Warm lamp light falling on the cabinet from above. */
 	--lamp: radial-gradient(
 		120% 60% at 50% -10%,
@@ -74,7 +78,7 @@ body {
 body {
 	background:
 		var(--lamp) fixed,
-		var(--wood-grain) fixed;
+		var(--smoked-walnut) fixed;
 	background-color: var(--color-walnut-950);
 	color: var(--color-cream-100);
 	font-family: var(--font-display);
@@ -95,6 +99,33 @@ body::before {
 	opacity: 0.06;
 	mix-blend-mode: overlay;
 	background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* A giant record centred above the page: the lower arc of its grooves shows behind the header
+   and fades out down the page. Fixed, so it never widens the page (no horizontal scroll). */
+body::after {
+	content: '';
+	position: fixed;
+	z-index: -1;
+	top: -50rem;
+	left: 50%;
+	width: 72rem;
+	aspect-ratio: 1;
+	translate: -50% 0;
+	border-radius: 9999px;
+	pointer-events: none;
+	background:
+		conic-gradient(
+			from 140deg,
+			transparent 0 2%,
+			rgb(255 179 71 / 0.08) 6%,
+			transparent 11% 21%,
+			rgb(255 255 255 / 0.045) 26%,
+			transparent 31%
+		),
+		repeating-radial-gradient(circle, rgb(0 0 0 / 0.5) 0 3px, rgb(255 255 255 / 0.035) 3px 4px);
+	-webkit-mask-image: linear-gradient(180deg, black 68%, transparent 93%);
+	mask-image: linear-gradient(180deg, black 68%, transparent 93%);
 }
 
 /* Recessed panel, like a cutout in the cabinet front. */
