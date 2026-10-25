@@ -48,3 +48,31 @@ for (const path of ['/', '/turntables', '/turntables/new', '/history', '/setting
 		expect(overflow).toBe(0);
 	});
 }
+
+// iOS Safari zooms in on any field under 16px when it's tapped, and a home-screen app tends to
+// stay zoomed, so the form spills off the screen and taps land on whatever is drawn below.
+test('form fields are at least 16px so iOS does not zoom in on tap', async ({ page }) => {
+	const fontSizes = () =>
+		page
+			.locator('main')
+			.locator('input:not([type="hidden"]):not([type="radio"]), select, textarea')
+			.evaluateAll((fields) =>
+				fields.map((f) => `${f.id}: ${parseFloat(getComputedStyle(f).fontSize)}`)
+			);
+	const tooSmall = (sizes: string[]) => sizes.filter((s) => parseFloat(s.split(': ')[1]) < 16);
+
+	await page.goto('/turntables/new');
+	await page.getByRole('radio', { name: /Custom/ }).check();
+	expect(tooSmall(await fontSizes())).toEqual([]);
+
+	await page.getByLabel('Brand', { exact: true }).fill('Crosley');
+	await page.getByLabel('Model', { exact: true }).fill('Font size');
+	await page.getByRole('button', { name: 'Next: stylus' }).click();
+	await expect(page.getByLabel('Stylus type')).toBeVisible();
+	await page.getByLabel('Stylus type').selectOption('custom');
+	await expect(page.getByLabel('Lifespan (hours)')).toBeVisible();
+	expect(tooSmall(await fontSizes())).toEqual([]);
+
+	await page.goto('/settings');
+	expect(tooSmall(await fontSizes())).toEqual([]);
+});
