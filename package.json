@@ -45,6 +45,7 @@
 		"svelte": "^5.57.1",
 		"svelte-check": "^4.6.0",
 		"tailwindcss": "^4.3.0",
+		"three": "^0.186.1",
 		"typescript": "^6.0.3",
 		"typescript-eslint": "^8.60.1",
 		"vite": "^8.3.0",

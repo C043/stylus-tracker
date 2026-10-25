@@ -13,7 +13,7 @@
 </script>
 
 <svelte:head>
-	<link rel="icon" href="/icons/icon.svg" />
+	<link rel="icon" type="image/png" href="/icons/favicon-32.png" />
 </svelte:head>
 
 <!-- Bottom padding reserves the floating dock (64px + its 12px gap) plus the home-indicator inset. -->

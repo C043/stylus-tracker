@@ -1,35 +1,51 @@
-// Renders the PNG app icons from static/icons/icon.svg with Playwright's Chromium.
+// Renders the PNG app icons from the three.js scene in scripts/icon-scene.js with Playwright's Chromium.
 // Usage: npm run icons   (honours CHROMIUM_PATH like the test configs)
-import { readFileSync } from 'node:fs';
+import { readFile, writeFile } from 'node:fs/promises';
+import { createServer } from 'node:http';
+import { extname, join, normalize } from 'node:path';
 import { chromium } from 'playwright';
 
-const svg = readFileSync('static/icons/icon.svg', 'utf8');
+const root = process.cwd();
+const types = { '.html': 'text/html', '.js': 'text/javascript' };
+const served = ['scripts/', 'node_modules/three/'];
 
-// Maskable/iOS: square full-bleed plinth, artwork shrunk into the 80% safe zone.
-const fullBleed = svg
-	.replace('rx="112"', 'rx="0"')
-	.replace(
-		'<g id="art">',
-		'<g id="art" transform="translate(256 256) scale(0.78) translate(-256 -256)">'
-	);
+// The scene loads three.js as ES modules, which Chromium won't do from file://, so serve them.
+const server = createServer(async (req, res) => {
+	const path = normalize(decodeURIComponent(new URL(req.url, 'http://x').pathname)).slice(1);
+	if (!served.some((dir) => path.startsWith(dir))) return res.writeHead(404).end();
+	try {
+		res.writeHead(200, { 'content-type': types[extname(path)] ?? 'application/octet-stream' });
+		res.end(await readFile(join(root, path)));
+	} catch {
+		res.writeHead(404).end();
+	}
+});
+await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve));
 
+// Maskable/iOS: square and full-bleed, scene zoomed out into the 80% safe zone.
 const icons = [
-	{ out: 'static/icons/icon-192.png', size: 192, source: svg },
-	{ out: 'static/icons/icon-512.png', size: 512, source: svg },
-	{ out: 'static/icons/icon-maskable-512.png', size: 512, source: fullBleed },
-	{ out: 'static/icons/apple-touch-icon.png', size: 180, source: fullBleed }
+	{ out: 'static/icons/icon-192.png', size: 192, fullBleed: false },
+	{ out: 'static/icons/icon-512.png', size: 512, fullBleed: false },
+	{ out: 'static/icons/icon-maskable-512.png', size: 512, fullBleed: true },
+	{ out: 'static/icons/apple-touch-icon.png', size: 180, fullBleed: true },
+	{ out: 'static/icons/favicon-32.png', size: 32, fullBleed: false }
 ];
 
-const browser = await chromium.launch({ executablePath: process.env.CHROMIUM_PATH || undefined });
-const page = await browser.newPage();
-for (const { out, size, source } of icons) {
-	await page.setViewportSize({ width: size, height: size });
-	const src = `data:image/svg+xml;base64,${Buffer.from(source).toString('base64')}`;
-	await page.setContent(
-		`<body style="margin:0"><img src="${src}" width="${size}" height="${size}" style="display:block"></body>`
-	);
-	await page.locator('img').evaluate((img) => img.decode());
-	await page.screenshot({ path: out, omitBackground: true });
-	console.log(`wrote ${out}`);
+const browser = await chromium.launch({
+	executablePath: process.env.CHROMIUM_PATH || undefined,
+	args: ['--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist']
+});
+try {
+	const page = await browser.newPage();
+	page.on('pageerror', (error) => console.error(error));
+	await page.goto(`http://127.0.0.1:${server.address().port}/scripts/icon-scene.html`);
+	await page.waitForFunction(() => window.iconSceneReady, null, { timeout: 60_000 });
+	for (const { out, size, fullBleed } of icons) {
+		const png = await page.evaluate((options) => window.renderIcon(options), { size, fullBleed });
+		await writeFile(out, Buffer.from(png, 'base64'));
+		console.log(`wrote ${out}`);
+	}
+} finally {
+	await browser.close();
+	server.close();
 }
-await browser.close();

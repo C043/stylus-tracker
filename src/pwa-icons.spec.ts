@@ -45,6 +45,14 @@ describe('PWA icons', () => {
 		}
 	);
 
+	it('links a 32px PNG favicon', () => {
+		const href = readFileSync('src/routes/+layout.svelte', 'utf8').match(
+			/<link rel="icon" type="image\/png" href="(\/[^"]+)"/
+		)?.[1];
+		expect(href).toBeDefined();
+		expect(pngSize(staticPath(href!))).toEqual({ width: 32, height: 32 });
+	});
+
 	it('links a 180px apple-touch-icon', () => {
 		const href = appHtml.match(
 			/<link rel="apple-touch-icon" href="%sveltekit\.assets%(\/[^"]+)"/
