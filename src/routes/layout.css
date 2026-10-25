@@ -102,30 +102,32 @@ body::before {
 }
 
 /* A giant record centred above the page: the lower arc of its grooves shows behind the header
-   and fades out down the page. Fixed, so it never widens the page (no horizontal scroll). */
+   and fades out down the page. A full-width band whose grooves circle a point above the screen,
+   so it fits any width without showing the record's edge or widening the page. */
 body::after {
+	--record-centre: 50% -14rem;
 	content: '';
 	position: fixed;
 	z-index: -1;
-	top: -50rem;
-	left: 50%;
-	width: 72rem;
-	aspect-ratio: 1;
-	translate: -50% 0;
-	border-radius: 9999px;
+	inset: 0 0 auto;
+	height: 18rem;
 	pointer-events: none;
 	background:
 		conic-gradient(
-			from 140deg,
+			from 140deg at var(--record-centre),
 			transparent 0 2%,
 			rgb(255 179 71 / 0.08) 6%,
 			transparent 11% 21%,
 			rgb(255 255 255 / 0.045) 26%,
 			transparent 31%
 		),
-		repeating-radial-gradient(circle, rgb(0 0 0 / 0.5) 0 3px, rgb(255 255 255 / 0.035) 3px 4px);
-	-webkit-mask-image: linear-gradient(180deg, black 68%, transparent 93%);
-	mask-image: linear-gradient(180deg, black 68%, transparent 93%);
+		repeating-radial-gradient(
+			circle at var(--record-centre),
+			rgb(0 0 0 / 0.5) 0 3px,
+			rgb(255 255 255 / 0.035) 3px 4px
+		);
+	-webkit-mask-image: linear-gradient(180deg, black, transparent);
+	mask-image: linear-gradient(180deg, black, transparent);
 }
 
 /* Recessed panel, like a cutout in the cabinet front. */

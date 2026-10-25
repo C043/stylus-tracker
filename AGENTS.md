@@ -255,8 +255,11 @@ and `--vinyl-grooves` (CSS record disc background).
 ## 6. PWA
 
 - `static/manifest.webmanifest`: name, short_name, `display: standalone`, portrait,
-  theme/background colours from tokens, icons 192/512 + maskable (TODO: design icon, a record
-  label with a stylus).
+  theme/background colours from tokens, icons 192/512 + maskable.
+- Icons (a stylus riding a glowing green heartbeat line) are a three.js scene in
+  `scripts/icon-scene.js`. Edit it, then `npm run icons` renders every PNG in `static/icons/`
+  (192/512, maskable, 180px apple-touch, 32px favicon). Renders are seeded, so unchanged scenes
+  give identical files. Don't hand-edit the PNGs.
 - `src/service-worker/index.ts`: precache build + static files; network-first for navigations/data
   with cache fallback; offline page.
 - **Offline play queue** (`src/lib/offline/`): with JS, every play goes into a queue in

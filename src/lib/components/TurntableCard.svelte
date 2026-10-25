@@ -63,11 +63,12 @@
 	);
 </script>
 
-<article aria-labelledby={titleId} class="flex flex-col gap-5 card p-4">
+<!-- A size container: the gauge, keys and actions adapt to the card's width, not the screen's. -->
+<article aria-labelledby={titleId} class="@container flex flex-col gap-5 card p-4">
 	<header class="flex items-center gap-3">
 		<!-- Product shot on a small walnut plinth -->
 		<div
-			class="grid size-16 shrink-0 place-items-center overflow-hidden rounded-2xl border border-cream-100/10 shadow-[inset_0_1px_0_rgb(255_255_255/0.08)] [background:var(--wood-grain)]"
+			class="grid size-14 shrink-0 place-items-center overflow-hidden rounded-2xl border border-cream-100/10 shadow-[inset_0_1px_0_rgb(255_255_255/0.08)] [background:var(--wood-grain)] @xs:size-16"
 		>
 			<img
 				src={catalogImage(turntable.catalogId)}
@@ -80,7 +81,7 @@
 		<div class="min-w-0 flex-1">
 			<h2
 				id={titleId}
-				class="truncate font-display text-[1.375rem] leading-tight font-semibold text-cream-50"
+				class="truncate font-display text-lg leading-tight font-semibold text-cream-50 @2xs:text-[1.375rem]"
 			>
 				{turntable.name}
 			</h2>
@@ -147,7 +148,7 @@
 				</p>
 			{/if}
 		</div>
-		<div class="grid grid-cols-2 gap-2">
+		<div class="grid grid-cols-1 gap-2 @2xs:grid-cols-2">
 			<a
 				href={resolve('/turntables/[id]/stylus/edit', { id: turntable.id })}
 				class="btn btn-secondary px-2 text-xs"

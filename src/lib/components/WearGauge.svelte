@@ -54,7 +54,7 @@
 	aria-valuenow={percent}
 	aria-valuetext={valueText}
 	data-status={wear.status}
-	class="grid grid-cols-[minmax(0,11rem)_1fr] items-center gap-3"
+	class="grid grid-cols-[minmax(0,8.5rem)_1fr] items-center gap-3 @xs:grid-cols-[minmax(0,11rem)_1fr]"
 >
 	<svg viewBox="0 0 232 208" class="w-full overflow-visible" aria-hidden="true">
 		<!-- Disc with its shadow on the platter -->
@@ -169,11 +169,11 @@
 		<p class="flex flex-col leading-none">
 			<span
 				data-testid="remaining-records"
-				class="font-mono text-[3.25rem] font-semibold tracking-tight text-cream-50 tabular-nums"
+				class="font-mono text-[2.5rem] font-semibold tracking-tight text-cream-50 tabular-nums @2xs:text-[2.875rem] @xs:text-[3.25rem]"
 			>
 				{wear.remainingRecords}
 			</span>
-			<span class="mt-1.5 text-base text-cream-300">{recordsWord} left</span>
+			<span class="mt-1.5 text-sm text-cream-300 @xs:text-base">{recordsWord} left</span>
 			{#if wear.extraSide}
 				<span class="mt-1 font-mono text-xs text-amber-glow">+ 1 side</span>
 			{/if}

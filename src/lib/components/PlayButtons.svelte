@@ -61,7 +61,7 @@
 				data-spins={spins[key.kind]}
 				onclick={() => press(key.kind)}
 				class={[
-					'group flex min-h-18 items-center gap-2.5 rounded-2xl px-2.5 text-left transition-[translate,box-shadow] duration-75 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-glow active:translate-y-[3px]',
+					'group flex min-h-18 flex-col items-center justify-center gap-1.5 rounded-2xl px-2 py-3 text-center transition-[translate,box-shadow] duration-75 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-glow active:translate-y-[3px] @xs:flex-row @xs:justify-start @xs:gap-2.5 @xs:px-2.5 @xs:py-0 @xs:text-left',
 					key.kind === 'full'
 						? 'bg-[linear-gradient(180deg,var(--color-amber-glow),var(--color-vu-soon))] text-walnut-950 shadow-[inset_0_1px_0_rgb(255_255_255/0.4),0_3px_0_var(--color-walnut-700),0_10px_20px_-8px_rgb(255_179_71/0.5)] active:shadow-[inset_0_1px_0_rgb(255_255_255/0.4),0_0_0_var(--color-walnut-700)]'
 						: 'bg-[linear-gradient(180deg,var(--color-alu-200),var(--color-alu-400))] text-walnut-950 shadow-[inset_0_1px_0_rgb(255_255_255/0.7),0_3px_0_var(--color-alu-600),0_10px_20px_-10px_rgb(0_0_0/0.8)] active:shadow-[inset_0_1px_0_rgb(255_255_255/0.7),0_0_0_var(--color-alu-600)]'
@@ -85,7 +85,7 @@
 						></span>
 					</span>
 				{/key}
-				<span class="flex min-w-0 flex-col leading-tight">
+				<span class="flex min-w-0 flex-col items-center leading-tight @xs:items-start">
 					<span class="font-display text-base font-semibold whitespace-nowrap">{key.label}</span>
 					<span aria-hidden="true" class="font-mono text-[0.6875rem] opacity-70">{key.hint}</span>
 				</span>

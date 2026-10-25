@@ -23,7 +23,7 @@
 <!-- Floating dock: a brushed-metal strip hovering over the cabinet, lit on the current input. -->
 <nav
 	aria-label="Main"
-	class="pointer-events-none fixed inset-x-0 bottom-0 z-10 px-[max(0.75rem,env(safe-area-inset-left))] pb-[max(0.75rem,env(safe-area-inset-bottom))]"
+	class="pointer-events-none fixed inset-x-0 bottom-0 z-10 pr-[max(0.75rem,env(safe-area-inset-right))] pb-[max(0.75rem,env(safe-area-inset-bottom))] pl-[max(0.75rem,env(safe-area-inset-left))]"
 >
 	<ul
 		class="pointer-events-auto mx-auto grid max-w-md grid-cols-4 gap-1 rounded-[1.75rem] border border-cream-100/10 bg-walnut-950/80 p-1.5 shadow-[inset_0_1px_0_rgb(255_255_255/0.06),0_12px_32px_-8px_rgb(0_0_0/0.8)] backdrop-blur-xl"
@@ -35,7 +35,7 @@
 					href={resolve(tab.href)}
 					aria-current={active ? 'page' : undefined}
 					class={[
-						'relative flex min-h-13 min-w-11 flex-col items-center justify-center gap-0.5 rounded-[1.375rem] font-mono text-[0.625rem] font-medium tracking-wider uppercase transition-colors focus-visible:outline-2 focus-visible:outline-amber-glow',
+						'relative flex min-h-13 min-w-11 flex-col items-center justify-center gap-0.5 rounded-[1.375rem] font-mono text-[0.625rem] font-medium tracking-normal uppercase transition-colors focus-visible:outline-2 focus-visible:outline-amber-glow min-[360px]:tracking-wider',
 						active
 							? 'bg-amber-glow/12 text-amber-glow shadow-[inset_0_0_0_1px_rgb(255_179_71/0.25)]'
 							: 'text-alu-400 hover:text-cream-100'
