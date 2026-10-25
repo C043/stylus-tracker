@@ -174,7 +174,7 @@ function draw({ fullBleed, grooved }) {
 	seed = 7;
 	ctx.clearRect(0, 0, SIZE, SIZE);
 	vinyl({ x: SIZE / 2, y: SIZE / 2, r: SIZE / 2 });
-	letters({ x: SIZE / 2, y: SIZE / 2, scale: fullBleed ? 0.8 : 1, grooved });
+	letters({ x: SIZE / 2, y: SIZE / 2, scale: fullBleed ? 1.05 : 1.3, grooved });
 }
 
 // Returns PNG bytes as base64 at `size`, clipped to the app's rounded plinth unless `fullBleed`.
